@@ -44,12 +44,6 @@ function ChordTrainer({ activeNotes }) {
     setQuestionCount(newQuestionCount);
     setIsRunning(false);
     
-    // Show feedback
-    setFeedback({
-      type: 'skipped',
-      message: 'Question skipped'
-    });
-    
     // Check if we've reached the question limit
     if (newQuestionCount >= settings.questionCount) {
       // End of session
@@ -59,6 +53,18 @@ function ChordTrainer({ activeNotes }) {
       });
       return;
     }
+    
+    // If delay is 0 (instant), skip the feedback and move to next question immediately
+    if (settings.questionDelay === 0) {
+      generateNewQuestion();
+      return;
+    }
+    
+    // Otherwise show feedback and wait for the configured delay
+    setFeedback({
+      type: 'skipped',
+      message: 'Question skipped'
+    });
     
     // Generate next question after the configured delay
     setTimeout(() => {
@@ -198,16 +204,31 @@ function ChordTrainer({ activeNotes }) {
         // Check if we've reached the question limit
         if (newQuestionCount >= settings.questionCount) {
           // End of session
-          setTimeout(() => {
+          if (settings.questionDelay === 0) {
+            // If instant, show completion message immediately
             setFeedback({
               type: 'complete',
               message: `Training complete! Final score: ${score + pointsEarned}`
             });
-          }, settings.questionDelay);
+          } else {
+            // Otherwise wait for the configured delay
+            setTimeout(() => {
+              setFeedback({
+                type: 'complete',
+                message: `Training complete! Final score: ${score + pointsEarned}`
+              });
+            }, settings.questionDelay);
+          }
           return;
         }
         
-        // Generate next question after the configured delay
+        // If delay is 0 (instant), move to next question immediately
+        if (settings.questionDelay === 0) {
+          generateNewQuestion();
+          return;
+        }
+        
+        // Otherwise wait for the configured delay
         setTimeout(() => {
           generateNewQuestion();
         }, settings.questionDelay);
