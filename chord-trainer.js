@@ -120,17 +120,29 @@ function ChordTrainer({ activeNotes }) {
   
   // Reset everything
   const resetTraining = () => {
-    setIsRunning(false);
-    setCurrentChord(null);
-    setScore(0);
-    setQuestionCount(0);
-    setFeedback(null);
-    setElapsedTime(0);
-    
+    // Stop the timer if it's running
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
+    
+    // Reset all game state
+    setIsRunning(false);
+    setCurrentChord(null);
+    setScore(0);
+    setQuestionCount(0);
+    setElapsedTime(0);
+    
+    // Show a feedback message briefly before clearing it
+    setFeedback({
+      type: 'info',
+      message: 'Game ended'
+    });
+    
+    // Clear the feedback message after a short delay
+    setTimeout(() => {
+      setFeedback(null);
+    }, 1000);
   };
   
   // Update active notes reference when activeNotes changes
@@ -246,6 +258,7 @@ function ChordTrainer({ activeNotes }) {
           {isRunning && (
             <div className="controls" style={{ marginTop: '1rem' }}>
               <button onClick={skipQuestion} className="skip-button">Skip</button>
+              <button onClick={resetTraining} className="end-button">End Game</button>
             </div>
           )}
         </>
