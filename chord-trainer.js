@@ -39,7 +39,8 @@ function ChordTrainer({ activeNotes }) {
     }
     
     // Update question count but don't add points
-    setQuestionCount(prevCount => prevCount + 1);
+    const newQuestionCount = questionCount + 1;
+    setQuestionCount(newQuestionCount);
     setIsRunning(false);
     
     // Show feedback
@@ -47,6 +48,16 @@ function ChordTrainer({ activeNotes }) {
       type: 'skipped',
       message: 'Question skipped'
     });
+    
+    // Check if we've reached the question limit
+    if (newQuestionCount >= settings.questionCount) {
+      // End of session
+      setFeedback({
+        type: 'complete',
+        message: `Training complete! Final score: ${score}`
+      });
+      return;
+    }
     
     // Generate next question after a short delay
     setTimeout(() => {
@@ -56,6 +67,7 @@ function ChordTrainer({ activeNotes }) {
   
   // Generate a new chord question
   const generateNewQuestion = useCallback(() => {
+    // Check if we've already reached the question limit
     if (questionCount >= settings.questionCount) {
       // End of session
       setIsRunning(false);
@@ -159,7 +171,8 @@ function ChordTrainer({ activeNotes }) {
         
         // Update score and question count
         setScore(prevScore => prevScore + pointsEarned);
-        setQuestionCount(prevCount => prevCount + 1);
+        const newQuestionCount = questionCount + 1;
+        setQuestionCount(newQuestionCount);
         setIsRunning(false);
         
         // Show feedback
@@ -168,6 +181,18 @@ function ChordTrainer({ activeNotes }) {
           message: `Correct! +${pointsEarned} points`,
           time: responseTime
         });
+        
+        // Check if we've reached the question limit
+        if (newQuestionCount >= settings.questionCount) {
+          // End of session
+          setTimeout(() => {
+            setFeedback({
+              type: 'complete',
+              message: `Training complete! Final score: ${score + pointsEarned}`
+            });
+          }, 1500);
+          return;
+        }
         
         // Generate next question after a short delay
         setTimeout(() => {
