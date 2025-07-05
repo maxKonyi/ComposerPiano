@@ -596,7 +596,7 @@ function ChordTrainer({ activeNotes }) {
                   }}
                   title="Root, Major 3rd, Perfect 5th, Major 7th"
                 >
-                  Major 7
+                  maj7
                 </button>
                 
                 <button 
@@ -613,7 +613,7 @@ function ChordTrainer({ activeNotes }) {
                   }}
                   title="Root, Major 3rd, Perfect 5th, Minor 7th"
                 >
-                  Dominant 7
+                  7
                 </button>
                 
                 <button 
@@ -630,7 +630,7 @@ function ChordTrainer({ activeNotes }) {
                   }}
                   title="Root, Minor 3rd, Perfect 5th, Minor 7th"
                 >
-                  Minor 7
+                  m7
                 </button>
                 
                 <button 
@@ -647,7 +647,7 @@ function ChordTrainer({ activeNotes }) {
                   }}
                   title="Root, Minor 3rd, Diminished 5th, Diminished 7th"
                 >
-                  Diminished 7
+                  dim7
                 </button>
                 
                 <button 
@@ -664,7 +664,7 @@ function ChordTrainer({ activeNotes }) {
                   }}
                   title="Root, Minor 3rd, Diminished 5th, Minor 7th"
                 >
-                  Half-Diminished 7
+                  m7b5
                 </button>
                 
                 <button 
@@ -739,7 +739,7 @@ function ChordTrainer({ activeNotes }) {
                   }}
                   title="Root, Major 3rd, Perfect 5th, Minor 7th, Major 9th"
                 >
-                  Dominant 9
+                  9
                 </button>
                 
                 <button 
@@ -756,7 +756,7 @@ function ChordTrainer({ activeNotes }) {
                   }}
                   title="Root, Major 3rd, Perfect 5th, Major 7th, Major 9th"
                 >
-                  Major 9
+                  maj9
                 </button>
                 
                 <button 
@@ -773,7 +773,7 @@ function ChordTrainer({ activeNotes }) {
                   }}
                   title="Root, Minor 3rd, Perfect 5th, Minor 7th, Major 9th"
                 >
-                  Minor 9
+                  m9
                 </button>
                 
                 <button 

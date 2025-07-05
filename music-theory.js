@@ -187,54 +187,54 @@ MusicTheory.CHORD_TYPES = {
   major7: {
     intervals: [0, 4, 7, 11],
     suffix: 'maj7',
-    displayName: 'Maj7'
+    displayName: 'maj7'
   },
   dominant7: {
     intervals: [0, 4, 7, 10],
     suffix: '7',
-    displayName: 'Dom7'
+    displayName: '7'
   },
   minor7: {
     intervals: [0, 3, 7, 10],
     suffix: 'm7',
-    displayName: 'Min7'
+    displayName: 'm7'
   },
   diminished7: {
     intervals: [0, 3, 6, 9],
     suffix: '°7',
-    displayName: 'Dim7'
+    displayName: 'dim7'
   },
   halfDiminished7: {
     intervals: [0, 3, 6, 10],
     suffix: 'ø7', // Half-diminished symbol
-    displayName: 'Half-Dim7'
+    displayName: 'm7b5'
   },
   minorMajor7: {
     intervals: [0, 3, 7, 11],
     suffix: 'm(maj7)',
-    displayName: 'Min(Maj7)'
+    displayName: 'm(maj7)'
   },
   
   // 9th Chords
   dominant9: {
     intervals: [0, 4, 7, 10, 14],
     suffix: '9',
-    displayName: 'Dom9'
+    displayName: '9'
   },
   major9: {
     intervals: [0, 4, 7, 11, 14],
     suffix: 'maj9',
-    displayName: 'Maj9'
+    displayName: 'maj9'
   },
   minor9: {
     intervals: [0, 3, 7, 10, 14],
     suffix: 'm9',
-    displayName: 'Min9'
+    displayName: 'm9'
   },
   minorMajor9: {
     intervals: [0, 3, 7, 11, 14],
     suffix: 'm(maj9)',
-    displayName: 'Min(Maj9)'
+    displayName: 'm(maj9)'
   }
 };
 
