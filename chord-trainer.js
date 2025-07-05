@@ -300,86 +300,359 @@ function ChordTrainer({ activeNotes }) {
       <div className="settings-panel">
         <h3 className="settings-title">Settings</h3>
         
-        <div className="settings-group">
+        {/* Chord Types Selection with Accordion UI */}
+        <div className="settings-group chord-selection">
           <h4>Chord Types</h4>
-          <div>
-            <label>
-              <input 
-                type="checkbox" 
-                checked={settings.chordTypes.includes('major')} 
-                onChange={e => {
-                  const newTypes = [...settings.chordTypes];
-                  if (e.target.checked) {
-                    if (!newTypes.includes('major')) newTypes.push('major');
-                  } else {
-                    const index = newTypes.indexOf('major');
-                    if (index > -1) newTypes.splice(index, 1);
-                  }
-                  setSettings({...settings, chordTypes: newTypes});
-                }}
-              />
-              Major Triads
-            </label>
+          
+          {/* Active Chord Types Summary */}
+          <div className="active-chord-types">
+            <span>Active: </span>
+            {settings.chordTypes.length > 0 ? (
+              <span className="chord-type-pills">
+                {settings.chordTypes.map(type => {
+                  const chordDef = MusicTheory.CHORD_TYPES[type];
+                  return (
+                    <span key={type} className="chord-type-pill" title={type}>
+                      {chordDef?.displayName || type}
+                    </span>
+                  );
+                })}
+              </span>
+            ) : (
+              <span className="no-chords-selected">None selected</span>
+            )}
+            {settings.chordTypes.length > 0 && (
+              <button 
+                className="clear-all-btn" 
+                onClick={() => setSettings({...settings, chordTypes: []})}
+                title="Clear all selected chord types"
+              >
+                ×
+              </button>
+            )}
           </div>
           
-          <div>
-            <label>
-              <input 
-                type="checkbox" 
-                checked={settings.chordTypes.includes('minor')} 
-                onChange={e => {
-                  const newTypes = [...settings.chordTypes];
-                  if (e.target.checked) {
-                    if (!newTypes.includes('minor')) newTypes.push('minor');
-                  } else {
-                    const index = newTypes.indexOf('minor');
-                    if (index > -1) newTypes.splice(index, 1);
-                  }
-                  setSettings({...settings, chordTypes: newTypes});
-                }}
-              />
-              Minor Triads
-            </label>
+          {/* Triads Accordion */}
+          <div className="chord-family-accordion">
+            <div className="chord-family-header" onClick={() => {
+              const elem = document.getElementById('triads-content');
+              elem.style.display = elem.style.display === 'none' ? 'block' : 'none';
+              document.getElementById('triads-arrow').textContent = 
+                elem.style.display === 'none' ? '▶' : '▼';
+            }}>
+              <span id="triads-arrow">▼</span> Triads
+              <label className="select-all-switch">
+                <input 
+                  type="checkbox" 
+                  checked={['major', 'minor', 'diminished', 'augmented'].every(type => 
+                    settings.chordTypes.includes(type)
+                  )}
+                  onChange={e => {
+                    const triadTypes = ['major', 'minor', 'diminished', 'augmented'];
+                    let newTypes = [...settings.chordTypes];
+                    
+                    if (e.target.checked) {
+                      // Add all triad types that aren't already included
+                      triadTypes.forEach(type => {
+                        if (!newTypes.includes(type)) newTypes.push(type);
+                      });
+                    } else {
+                      // Remove all triad types
+                      newTypes = newTypes.filter(type => !triadTypes.includes(type));
+                    }
+                    
+                    setSettings({...settings, chordTypes: newTypes});
+                  }}
+                />
+                <span className="select-all-label">Select All</span>
+              </label>
+            </div>
+            
+            <div id="triads-content" className="chord-family-content">
+              <div className="chord-type-toggles">
+                <button 
+                  className={`chord-type-toggle ${settings.chordTypes.includes('major') ? 'active' : ''}`}
+                  onClick={() => {
+                    const newTypes = [...settings.chordTypes];
+                    if (newTypes.includes('major')) {
+                      const index = newTypes.indexOf('major');
+                      newTypes.splice(index, 1);
+                    } else {
+                      newTypes.push('major');
+                    }
+                    setSettings({...settings, chordTypes: newTypes});
+                  }}
+                >
+                  Major
+                </button>
+                
+                <button 
+                  className={`chord-type-toggle ${settings.chordTypes.includes('minor') ? 'active' : ''}`}
+                  onClick={() => {
+                    const newTypes = [...settings.chordTypes];
+                    if (newTypes.includes('minor')) {
+                      const index = newTypes.indexOf('minor');
+                      newTypes.splice(index, 1);
+                    } else {
+                      newTypes.push('minor');
+                    }
+                    setSettings({...settings, chordTypes: newTypes});
+                  }}
+                >
+                  Minor
+                </button>
+                
+                <button 
+                  className={`chord-type-toggle ${settings.chordTypes.includes('diminished') ? 'active' : ''}`}
+                  onClick={() => {
+                    const newTypes = [...settings.chordTypes];
+                    if (newTypes.includes('diminished')) {
+                      const index = newTypes.indexOf('diminished');
+                      newTypes.splice(index, 1);
+                    } else {
+                      newTypes.push('diminished');
+                    }
+                    setSettings({...settings, chordTypes: newTypes});
+                  }}
+                >
+                  Diminished
+                </button>
+                
+                <button 
+                  className={`chord-type-toggle ${settings.chordTypes.includes('augmented') ? 'active' : ''}`}
+                  onClick={() => {
+                    const newTypes = [...settings.chordTypes];
+                    if (newTypes.includes('augmented')) {
+                      const index = newTypes.indexOf('augmented');
+                      newTypes.splice(index, 1);
+                    } else {
+                      newTypes.push('augmented');
+                    }
+                    setSettings({...settings, chordTypes: newTypes});
+                  }}
+                >
+                  Augmented
+                </button>
+              </div>
+            </div>
           </div>
           
-          <div>
-            <label>
-              <input 
-                type="checkbox" 
-                checked={settings.chordTypes.includes('diminished')} 
-                onChange={e => {
-                  const newTypes = [...settings.chordTypes];
-                  if (e.target.checked) {
-                    if (!newTypes.includes('diminished')) newTypes.push('diminished');
-                  } else {
-                    const index = newTypes.indexOf('diminished');
-                    if (index > -1) newTypes.splice(index, 1);
-                  }
-                  setSettings({...settings, chordTypes: newTypes});
-                }}
-              />
-              Diminished Triads
-            </label>
+          {/* 7th Chords Accordion */}
+          <div className="chord-family-accordion">
+            <div className="chord-family-header" onClick={() => {
+              const elem = document.getElementById('sevenths-content');
+              elem.style.display = elem.style.display === 'none' ? 'block' : 'none';
+              document.getElementById('sevenths-arrow').textContent = 
+                elem.style.display === 'none' ? '▶' : '▼';
+            }}>
+              <span id="sevenths-arrow">▶</span> 7th Chords
+              <label className="select-all-switch" onClick={e => e.stopPropagation()}>
+                <input 
+                  type="checkbox" 
+                  checked={['major7', 'dominant7', 'minor7', 'diminished7', 'halfDiminished7'].every(type => 
+                    settings.chordTypes.includes(type)
+                  )}
+                  onChange={e => {
+                    const seventhTypes = ['major7', 'dominant7', 'minor7', 'diminished7', 'halfDiminished7'];
+                    let newTypes = [...settings.chordTypes];
+                    
+                    if (e.target.checked) {
+                      // Add all 7th chord types that aren't already included
+                      seventhTypes.forEach(type => {
+                        if (!newTypes.includes(type)) newTypes.push(type);
+                      });
+                    } else {
+                      // Remove all 7th chord types
+                      newTypes = newTypes.filter(type => !seventhTypes.includes(type));
+                    }
+                    
+                    setSettings({...settings, chordTypes: newTypes});
+                  }}
+                />
+                <span className="select-all-label">Select All</span>
+              </label>
+            </div>
+            
+            <div id="sevenths-content" className="chord-family-content" style={{display: 'none'}}>
+              <div className="chord-type-toggles">
+                <button 
+                  className={`chord-type-toggle ${settings.chordTypes.includes('major7') ? 'active' : ''}`}
+                  onClick={() => {
+                    const newTypes = [...settings.chordTypes];
+                    if (newTypes.includes('major7')) {
+                      const index = newTypes.indexOf('major7');
+                      newTypes.splice(index, 1);
+                    } else {
+                      newTypes.push('major7');
+                    }
+                    setSettings({...settings, chordTypes: newTypes});
+                  }}
+                  title="Root, Major 3rd, Perfect 5th, Major 7th"
+                >
+                  Major 7
+                </button>
+                
+                <button 
+                  className={`chord-type-toggle ${settings.chordTypes.includes('dominant7') ? 'active' : ''}`}
+                  onClick={() => {
+                    const newTypes = [...settings.chordTypes];
+                    if (newTypes.includes('dominant7')) {
+                      const index = newTypes.indexOf('dominant7');
+                      newTypes.splice(index, 1);
+                    } else {
+                      newTypes.push('dominant7');
+                    }
+                    setSettings({...settings, chordTypes: newTypes});
+                  }}
+                  title="Root, Major 3rd, Perfect 5th, Minor 7th"
+                >
+                  Dominant 7
+                </button>
+                
+                <button 
+                  className={`chord-type-toggle ${settings.chordTypes.includes('minor7') ? 'active' : ''}`}
+                  onClick={() => {
+                    const newTypes = [...settings.chordTypes];
+                    if (newTypes.includes('minor7')) {
+                      const index = newTypes.indexOf('minor7');
+                      newTypes.splice(index, 1);
+                    } else {
+                      newTypes.push('minor7');
+                    }
+                    setSettings({...settings, chordTypes: newTypes});
+                  }}
+                  title="Root, Minor 3rd, Perfect 5th, Minor 7th"
+                >
+                  Minor 7
+                </button>
+                
+                <button 
+                  className={`chord-type-toggle ${settings.chordTypes.includes('diminished7') ? 'active' : ''}`}
+                  onClick={() => {
+                    const newTypes = [...settings.chordTypes];
+                    if (newTypes.includes('diminished7')) {
+                      const index = newTypes.indexOf('diminished7');
+                      newTypes.splice(index, 1);
+                    } else {
+                      newTypes.push('diminished7');
+                    }
+                    setSettings({...settings, chordTypes: newTypes});
+                  }}
+                  title="Root, Minor 3rd, Diminished 5th, Diminished 7th"
+                >
+                  Diminished 7
+                </button>
+                
+                <button 
+                  className={`chord-type-toggle ${settings.chordTypes.includes('halfDiminished7') ? 'active' : ''}`}
+                  onClick={() => {
+                    const newTypes = [...settings.chordTypes];
+                    if (newTypes.includes('halfDiminished7')) {
+                      const index = newTypes.indexOf('halfDiminished7');
+                      newTypes.splice(index, 1);
+                    } else {
+                      newTypes.push('halfDiminished7');
+                    }
+                    setSettings({...settings, chordTypes: newTypes});
+                  }}
+                  title="Root, Minor 3rd, Diminished 5th, Minor 7th"
+                >
+                  Half-Diminished 7
+                </button>
+              </div>
+            </div>
           </div>
           
-          <div>
-            <label>
-              <input 
-                type="checkbox" 
-                checked={settings.chordTypes.includes('augmented')} 
-                onChange={e => {
-                  const newTypes = [...settings.chordTypes];
-                  if (e.target.checked) {
-                    if (!newTypes.includes('augmented')) newTypes.push('augmented');
-                  } else {
-                    const index = newTypes.indexOf('augmented');
-                    if (index > -1) newTypes.splice(index, 1);
-                  }
-                  setSettings({...settings, chordTypes: newTypes});
-                }}
-              />
-              Augmented Triads
-            </label>
+          {/* 9th Chords Accordion */}
+          <div className="chord-family-accordion">
+            <div className="chord-family-header" onClick={() => {
+              const elem = document.getElementById('ninths-content');
+              elem.style.display = elem.style.display === 'none' ? 'block' : 'none';
+              document.getElementById('ninths-arrow').textContent = 
+                elem.style.display === 'none' ? '▶' : '▼';
+            }}>
+              <span id="ninths-arrow">▶</span> 9th Chords
+              <label className="select-all-switch" onClick={e => e.stopPropagation()}>
+                <input 
+                  type="checkbox" 
+                  checked={['dominant9', 'major9', 'minor9'].every(type => 
+                    settings.chordTypes.includes(type)
+                  )}
+                  onChange={e => {
+                    const ninthTypes = ['dominant9', 'major9', 'minor9'];
+                    let newTypes = [...settings.chordTypes];
+                    
+                    if (e.target.checked) {
+                      // Add all 9th chord types that aren't already included
+                      ninthTypes.forEach(type => {
+                        if (!newTypes.includes(type)) newTypes.push(type);
+                      });
+                    } else {
+                      // Remove all 9th chord types
+                      newTypes = newTypes.filter(type => !ninthTypes.includes(type));
+                    }
+                    
+                    setSettings({...settings, chordTypes: newTypes});
+                  }}
+                />
+                <span className="select-all-label">Select All</span>
+              </label>
+            </div>
+            
+            <div id="ninths-content" className="chord-family-content" style={{display: 'none'}}>
+              <div className="chord-type-toggles">
+                <button 
+                  className={`chord-type-toggle ${settings.chordTypes.includes('dominant9') ? 'active' : ''}`}
+                  onClick={() => {
+                    const newTypes = [...settings.chordTypes];
+                    if (newTypes.includes('dominant9')) {
+                      const index = newTypes.indexOf('dominant9');
+                      newTypes.splice(index, 1);
+                    } else {
+                      newTypes.push('dominant9');
+                    }
+                    setSettings({...settings, chordTypes: newTypes});
+                  }}
+                  title="Root, Major 3rd, Perfect 5th, Minor 7th, Major 9th"
+                >
+                  Dominant 9
+                </button>
+                
+                <button 
+                  className={`chord-type-toggle ${settings.chordTypes.includes('major9') ? 'active' : ''}`}
+                  onClick={() => {
+                    const newTypes = [...settings.chordTypes];
+                    if (newTypes.includes('major9')) {
+                      const index = newTypes.indexOf('major9');
+                      newTypes.splice(index, 1);
+                    } else {
+                      newTypes.push('major9');
+                    }
+                    setSettings({...settings, chordTypes: newTypes});
+                  }}
+                  title="Root, Major 3rd, Perfect 5th, Major 7th, Major 9th"
+                >
+                  Major 9
+                </button>
+                
+                <button 
+                  className={`chord-type-toggle ${settings.chordTypes.includes('minor9') ? 'active' : ''}`}
+                  onClick={() => {
+                    const newTypes = [...settings.chordTypes];
+                    if (newTypes.includes('minor9')) {
+                      const index = newTypes.indexOf('minor9');
+                      newTypes.splice(index, 1);
+                    } else {
+                      newTypes.push('minor9');
+                    }
+                    setSettings({...settings, chordTypes: newTypes});
+                  }}
+                  title="Root, Minor 3rd, Perfect 5th, Minor 7th, Major 9th"
+                >
+                  Minor 9
+                </button>
+              </div>
+            </div>
           </div>
         </div>
         

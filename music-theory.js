@@ -139,33 +139,70 @@ MusicTheory.getEnharmonicNoteName = function(pitchClass, rootNote) {
 
 // Chord type definitions (intervals from root)
 MusicTheory.CHORD_TYPES = {
+  // Triads
   major: {
     intervals: [0, 4, 7],
-    suffix: '' // Major chords have no suffix in standard notation
+    suffix: '', // Major chords have no suffix in standard notation
+    displayName: 'Major'
   },
   minor: {
     intervals: [0, 3, 7],
-    suffix: 'm'
+    suffix: 'm',
+    displayName: 'Minor'
   },
   diminished: {
     intervals: [0, 3, 6],
-    suffix: '°' // Diminished circle symbol
+    suffix: '°', // Diminished circle symbol
+    displayName: 'Dim'
   },
   augmented: {
     intervals: [0, 4, 8],
-    suffix: '+' // Augmented plus symbol
+    suffix: '+', // Augmented plus symbol
+    displayName: 'Aug'
   },
+  
+  // 7th Chords
   major7: {
     intervals: [0, 4, 7, 11],
-    suffix: 'maj7'
+    suffix: 'maj7',
+    displayName: 'Maj7'
   },
   dominant7: {
     intervals: [0, 4, 7, 10],
-    suffix: '7'
+    suffix: '7',
+    displayName: 'Dom7'
   },
   minor7: {
     intervals: [0, 3, 7, 10],
-    suffix: 'm7'
+    suffix: 'm7',
+    displayName: 'Min7'
+  },
+  diminished7: {
+    intervals: [0, 3, 6, 9],
+    suffix: '°7',
+    displayName: 'Dim7'
+  },
+  halfDiminished7: {
+    intervals: [0, 3, 6, 10],
+    suffix: 'ø7', // Half-diminished symbol
+    displayName: 'Half-Dim7'
+  },
+  
+  // 9th Chords
+  dominant9: {
+    intervals: [0, 4, 7, 10, 14],
+    suffix: '9',
+    displayName: 'Dom9'
+  },
+  major9: {
+    intervals: [0, 4, 7, 11, 14],
+    suffix: 'maj9',
+    displayName: 'Maj9'
+  },
+  minor9: {
+    intervals: [0, 3, 7, 10, 14],
+    suffix: 'm9',
+    displayName: 'Min9'
   }
 };
 

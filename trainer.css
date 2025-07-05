@@ -193,3 +193,73 @@
   margin-bottom: 0;
   padding-bottom: 0;
 }
+
+/* Chord Selection Accordion UI */
+/* Chord family accordion */
+.chord-family-accordion {
+  margin-bottom: 0.75rem;
+  border: 1px solid #333;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.chord-family-header {
+  background-color: #2a2a2a;
+  padding: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  user-select: none;
+}
+
+.chord-family-header:hover {
+  background-color: #333;
+}
+
+.chord-family-header span:first-child {
+  margin-right: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.select-all-switch {
+  margin-left: auto !important;
+  font-size: 0.8rem;
+}
+
+.select-all-label {
+  color: #aaa;
+}
+
+.chord-family-content {
+  padding: 0.75rem;
+  background-color: #222;
+}
+
+/* Chord type toggle buttons */
+.chord-type-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chord-type-toggle {
+  background-color: #333;
+  border: 1px solid #444;
+  border-radius: 1rem;
+  color: #aaa;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chord-type-toggle:hover {
+  background-color: #3a3a3a;
+  color: #ccc;
+}
+
+.chord-type-toggle.active {
+  background-color: #1e88e5;
+  color: white;
+  border-color: #1976d2;
+}
