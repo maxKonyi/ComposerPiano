@@ -478,6 +478,10 @@ MusicTheory.generateChord = function(rootNote, chordType, inversion = 'root', oc
   };
 };
 
+// Internal buffer of recently generated chords to prevent repeats
+MusicTheory._recentChords = MusicTheory._recentChords || [];
+const RECENT_BUFFER_SIZE = 5; // How many previous chords to avoid repeating
+
 // Generate a random chord based on settings
 MusicTheory.generateRandomChord = function(settings) {
   // Default settings
@@ -493,7 +497,6 @@ MusicTheory.generateRandomChord = function(settings) {
     0:['C'], 1:['C#','Db'], 2:['D'], 3:['D#','Eb'], 4:['E'], 5:['F'],
     6:['F#','Gb'], 7:['G'], 8:['G#','Ab'], 9:['A'], 10:['A#','Bb'], 11:['B']
   };
-  let rootNote;
   function pickRandomRoot(){
     const pc = Math.floor(Math.random()*12); // uniform pitch-class
     const names = pcNames[pc];
@@ -502,12 +505,15 @@ MusicTheory.generateRandomChord = function(settings) {
     if (allowed.length===0) return null; // try again
     return allowed[Math.floor(Math.random()*allowed.length)];
   }
+  let rootNote, chordType;
+  const MAX_ATTEMPTS = 20;
+  let attempts = 0;
   do {
     rootNote = pickRandomRoot();
-  } while(rootNote===null);
-  
-  // Choose a random chord type
-  const chordType = config.chordTypes[Math.floor(Math.random() * config.chordTypes.length)];
+    chordType = config.chordTypes[Math.floor(Math.random() * config.chordTypes.length)];
+    attempts++;
+  } while (MusicTheory._recentChords.some(c => c.root === rootNote && c.type === chordType) && attempts < MAX_ATTEMPTS);
+  // After MAX_ATTEMPTS we accept whatever came up to avoid an infinite loop
   
   // Choose inversion
   let inversion = 'root';
@@ -524,7 +530,13 @@ MusicTheory.generateRandomChord = function(settings) {
     }
   }
   
-  return MusicTheory.generateChord(rootNote, chordType, inversion, config.octave);
+    const chordObj = MusicTheory.generateChord(rootNote, chordType, inversion, config.octave);
+  // Update recent history
+  MusicTheory._recentChords.push({root: chordObj.root, type: chordObj.type});
+  if (MusicTheory._recentChords.length > RECENT_BUFFER_SIZE) {
+    MusicTheory._recentChords.shift();
+  }
+  return chordObj;
 };
 
 // Fix enharmonic issues in a chord name (for debugging)
