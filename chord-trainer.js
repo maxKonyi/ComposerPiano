@@ -311,8 +311,6 @@ function ChordTrainer({ activeNotes }) {
       
       {/* Expanded settings panel for M4 */}
       <div className="settings-panel">
-        <h3 className="settings-title">Settings</h3>
-        
         {/* Chord Types Selection with Accordion UI */}
         <div className="settings-group chord-selection">
           <h4>Chord Types</h4>
