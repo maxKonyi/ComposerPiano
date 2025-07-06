@@ -311,7 +311,122 @@ function ChordTrainer({ activeNotes }) {
       
       {/* Expanded settings panel for M4 */}
       <div className="settings-panel">
-        {/* Chord Types Selection with Accordion UI */}
+        {/* Session Settings - Moved to top */}
+        <div className="settings-group">
+          <h4>Session</h4>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center' }}>
+            <label>
+              Questions: 
+              <select 
+                value={settings.questionCount}
+                onChange={e => setSettings({...settings, questionCount: parseInt(e.target.value)})}
+                style={{ marginLeft: '0.25rem', padding: '0.25rem', background: '#222', color: 'white', border: '1px solid #444' }}
+              >
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="15">15</option>
+                <option value="20">20</option>
+              </select>
+            </label>
+            
+            <label>
+              Timer: 
+              <select 
+                value={settings.timerMaxSeconds}
+                onChange={e => setSettings({...settings, timerMaxSeconds: parseInt(e.target.value)})}
+                style={{ marginLeft: '0.25rem', padding: '0.25rem', background: '#222', color: 'white', border: '1px solid #444' }}
+              >
+                <option value="5">5s</option>
+                <option value="10">10s</option>
+                <option value="15">15s</option>
+                <option value="20">20s</option>
+              </select>
+            </label>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <label style={{ fontSize: '0.9rem' }}>
+                Delay: {(settings.questionDelay / 1000).toFixed(1)}s
+              </label>
+              {/* Custom slider implementation */}
+              <div 
+                style={{
+                  width: '80px',
+                  position: 'relative',
+                  height: '20px',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
+                {/* Slider track */}
+                <div
+                  style={{
+                    width: '100%',
+                    height: '6px',
+                    backgroundColor: '#222',
+                    borderRadius: '4px',
+                    position: 'absolute'
+                  }}
+                  onClick={e => {
+                    // Calculate position click within track
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const pos = (e.clientX - rect.left) / rect.width;
+                    const newValue = Math.round((pos * 3000) / 100) * 100; // Step of 100
+                    setSettings({...settings, questionDelay: newValue});
+                  }}
+                ></div>
+                
+                {/* Slider thumb */}
+                <div
+                  style={{
+                    width: '14px',
+                    height: '14px',
+                    borderRadius: '50%',
+                    backgroundColor: '#4a90e2',
+                    position: 'absolute',
+                    left: `${(settings.questionDelay / 3000) * 100}%`,
+                    transform: 'translateX(-50%)',
+                    cursor: 'pointer',
+                    boxShadow: '0 0 3px rgba(0,0,0,0.4)'
+                  }}
+                  onMouseDown={e => {
+                    e.preventDefault();
+                    
+                    // Get initial position
+                    const startX = e.clientX;
+                    const startValue = settings.questionDelay;
+                    const parentRect = e.currentTarget.parentElement.getBoundingClientRect();
+                    const trackWidth = parentRect.width;
+                    
+                    // Handle mouse move
+                    const handleMouseMove = moveEvent => {
+                      const deltaX = moveEvent.clientX - startX;
+                      const deltaRatio = deltaX / trackWidth;
+                      const deltaValue = deltaRatio * 3000;
+                      let newValue = Math.round((startValue + deltaValue) / 100) * 100; // Step of 100
+                      
+                      // Clamp value
+                      newValue = Math.max(0, Math.min(3000, newValue));
+                      
+                      setSettings({...settings, questionDelay: newValue});
+                    };
+                    
+                    // Handle mouse up
+                    const handleMouseUp = () => {
+                      document.removeEventListener('mousemove', handleMouseMove);
+                      document.removeEventListener('mouseup', handleMouseUp);
+                    };
+                    
+                    // Add document-level event listeners
+                    document.addEventListener('mousemove', handleMouseMove);
+                    document.addEventListener('mouseup', handleMouseUp);
+                  }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Chord Types Selection */}
         <div className="settings-group chord-selection">
           <h4>Chord Types</h4>
           
@@ -836,59 +951,7 @@ function ChordTrainer({ activeNotes }) {
           </div>
         </div>
 
-        <div className="settings-group">
-          <h4>Session</h4>
-          <div>
-            <label>
-              Questions: 
-              <select 
-                value={settings.questionCount}
-                onChange={e => setSettings({...settings, questionCount: parseInt(e.target.value)})}
-                style={{ marginLeft: '0.5rem', padding: '0.25rem', background: '#222', color: 'white', border: '1px solid #444' }}
-              >
-                <option value="5">5</option>
-                <option value="10">10</option>
-                <option value="15">15</option>
-                <option value="20">20</option>
-              </select>
-            </label>
-          </div>
-          
-          <div style={{ marginTop: '0.5rem' }}>
-            <label>
-              Timer Max: 
-              <select 
-                value={settings.timerMaxSeconds}
-                onChange={e => setSettings({...settings, timerMaxSeconds: parseInt(e.target.value)})}
-                style={{ marginLeft: '0.5rem', padding: '0.25rem', background: '#222', color: 'white', border: '1px solid #444' }}
-              >
-                <option value="5">5 seconds</option>
-                <option value="10">10 seconds</option>
-                <option value="15">15 seconds</option>
-                <option value="20">20 seconds</option>
-              </select>
-            </label>
-          </div>
-          
-          <div style={{ marginTop: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem' }}>
-              Question Delay: {(settings.questionDelay / 1000).toFixed(1)}s
-            </label>
-            <input 
-              type="range" 
-              min="0" 
-              max="3000" 
-              step="100"
-              value={settings.questionDelay}
-              onChange={e => setSettings({...settings, questionDelay: parseInt(e.target.value)})}
-              style={{ width: '100%', background: '#222', height: '8px', borderRadius: '4px', appearance: 'none', outline: 'none' }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#888', marginTop: '0.25rem' }}>
-              <span>Instant</span>
-              <span>3 seconds</span>
-            </div>
-          </div>
-        </div>
+
       </div>
     </div>
   );
