@@ -259,63 +259,16 @@ function ChordTrainer({ activeNotes }) {
   }, []);
   
   return (
-    <div>
-      {!currentChord && !isRunning && (
-        <div className="controls">
-          <button onClick={startTraining}>Start Training</button>
-        </div>
-      )}
-      
-      {currentChord && (
-        <>
-          <div className="question-display">
-            {currentChord.displayName}
-          </div>
-          
-          <Timer isRunning={isRunning} elapsedTime={elapsedTime} maxSeconds={settings.timerMaxSeconds} />
-          
-          <div className="score-display">
-            <div className="score-item">
-              <div className="score-value">{score}</div>
-              <div className="score-label">Score</div>
-            </div>
-            <div className="score-item">
-              <div className="score-value">{questionCount}/{settings.questionCount}</div>
-              <div className="score-label">Progress</div>
-            </div>
-            <div className="score-item">
-              <div className="score-value">{elapsedTime > 0 ? (elapsedTime / 1000).toFixed(1) : '0.0'}s</div>
-              <div className="score-label">Time</div>
-            </div>
-          </div>
-          
-          {isRunning && (
-            <div className="controls" style={{ marginTop: '1rem' }}>
-              <button onClick={skipQuestion} className="skip-button">Skip</button>
-              <button onClick={resetTraining} className="end-button">End Game</button>
-            </div>
-          )}
-        </>
-      )}
-      
-      {feedback && (
-        <div className={`result-feedback ${feedback.type === 'correct' ? 'result-correct' : feedback.type === 'skipped' ? 'result-skipped' : 'result-incorrect'}`}>
-          {feedback.message}
-          {feedback.type === 'complete' && (
-            <div className="controls" style={{ marginTop: '1rem' }}>
-              <button onClick={startTraining}>Start New Session</button>
-            </div>
-          )}
-        </div>
-      )}
-      
-      {/* Expanded settings panel for M4 */}
-      <div className="settings-panel">
-        {/* Session Settings - Moved to top */}
-        <div className="settings-group">
-          <h4>Session</h4>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center' }}>
-            <label>
+    <div className="app-container">
+      {/* Left sidebar for settings */}
+      <div className="sidebar">
+        <div className="settings-panel">
+          <h3 className="settings-title">Settings</h3>
+          {/* Session Settings - Moved to top */}
+          <div className="settings-group">
+            <h4>Session</h4>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center' }}>
+              <label>
               Questions: 
               <select 
                 value={settings.questionCount}
@@ -951,8 +904,59 @@ function ChordTrainer({ activeNotes }) {
             </label>
           </div>
         </div>
-
-
+        </div>
+      </div>
+      
+      {/* Main content area */}
+      <div className="main-content">
+        {!currentChord && !isRunning && (
+          <div className="controls">
+            <button onClick={startTraining}>Start Training</button>
+          </div>
+        )}
+        
+        {currentChord && (
+          <>
+            <div className="question-display">
+              {currentChord.displayName}
+            </div>
+            
+            <Timer isRunning={isRunning} elapsedTime={elapsedTime} maxSeconds={settings.timerMaxSeconds} />
+            
+            <div className="score-display">
+              <div className="score-item">
+                <div className="score-value">{score}</div>
+                <div className="score-label">Score</div>
+              </div>
+              <div className="score-item">
+                <div className="score-value">{questionCount}/{settings.questionCount}</div>
+                <div className="score-label">Progress</div>
+              </div>
+              <div className="score-item">
+                <div className="score-value">{elapsedTime > 0 ? (elapsedTime / 1000).toFixed(1) : '0.0'}s</div>
+                <div className="score-label">Time</div>
+              </div>
+            </div>
+            
+            {isRunning && (
+              <div className="controls" style={{ marginTop: '1rem' }}>
+                <button onClick={skipQuestion} className="skip-button">Skip</button>
+                <button onClick={resetTraining} className="end-button">End Game</button>
+              </div>
+            )}
+          </>
+        )}
+        
+        {feedback && (
+          <div className={`result-feedback ${feedback.type === 'correct' ? 'result-correct' : feedback.type === 'skipped' ? 'result-skipped' : 'result-incorrect'}`}>
+            {feedback.message}
+            {feedback.type === 'complete' && (
+              <div className="controls" style={{ marginTop: '1rem' }}>
+                <button onClick={startTraining}>Start New Session</button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
