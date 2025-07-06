@@ -184,8 +184,6 @@ function TrainerLayout({ title, onBack, children, activeNotes, midiStatus }) {
       <div style={{ margin: '1rem 0' }}>
         {children}
       </div>
-      
-      <PianoKeyboard activeNotes={activeNotes} startOctave={3} endOctave={5} />
     </div>
   );
 }

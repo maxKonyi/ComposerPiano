@@ -957,6 +957,11 @@ function ChordTrainer({ activeNotes }) {
             )}
           </div>
         )}
+        
+        {/* Piano keyboard inside the main content area */}
+        <div className="keyboard-wrapper">
+          <PianoKeyboard activeNotes={activeNotes} startOctave={3} endOctave={5} />
+        </div>
       </div>
     </div>
   );

@@ -420,3 +420,10 @@
 .clear-all-btn:hover {
   background-color: #555;
 }
+
+/* Keyboard wrapper to center the piano keyboard in the main content area */
+.keyboard-wrapper {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
