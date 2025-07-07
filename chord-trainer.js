@@ -909,54 +909,51 @@ function ChordTrainer({ activeNotes }) {
       
       {/* Main content area */}
       <div className="main-content">
-        {!currentChord && !isRunning && (
-          <div className="controls">
+        {/* Question display - always visible */}
+        <div className="question-display">
+          {currentChord ? currentChord.displayName : 'C#m'}
+        </div>
+        
+        {/* Timer - always visible */}
+        <Timer isRunning={isRunning} elapsedTime={elapsedTime} maxSeconds={settings.timerMaxSeconds} />
+        
+        {/* Score display - always visible */}
+        <div className="score-display">
+          <div className="score-item">
+            <div className="score-value">{score}</div>
+            <div className="score-label">Score</div>
+          </div>
+          <div className="score-item">
+            <div className="score-value">{questionCount}/{settings.questionCount}</div>
+            <div className="score-label">Progress</div>
+          </div>
+          <div className="score-item">
+            <div className="score-value">{elapsedTime > 0 ? (elapsedTime / 1000).toFixed(1) : '0.0'}s</div>
+            <div className="score-label">Time</div>
+          </div>
+        </div>
+        
+        {/* Controls - always visible */}
+        <div className="controls" style={{ marginTop: '1rem' }}>
+          {!isRunning && !feedback?.type === 'complete' ? (
             <button onClick={startTraining}>Start Training</button>
-          </div>
-        )}
+          ) : isRunning ? (
+            <>
+              <button onClick={skipQuestion} className="skip-button">Skip</button>
+              <button onClick={resetTraining} className="end-button">End Game</button>
+            </>
+          ) : null}
+        </div>
         
-        {currentChord && (
-          <>
-            <div className="question-display">
-              {currentChord.displayName}
+        {/* Feedback message area - fixed height */}
+        <div className={`result-feedback ${feedback ? (feedback.type === 'correct' ? 'result-correct' : feedback.type === 'skipped' ? 'result-skipped' : 'result-incorrect') : ''}`}>
+          {feedback ? feedback.message : ''}
+          {feedback?.type === 'complete' && (
+            <div className="controls" style={{ marginTop: '1rem' }}>
+              <button onClick={startTraining}>Start New Session</button>
             </div>
-            
-            <Timer isRunning={isRunning} elapsedTime={elapsedTime} maxSeconds={settings.timerMaxSeconds} />
-            
-            <div className="score-display">
-              <div className="score-item">
-                <div className="score-value">{score}</div>
-                <div className="score-label">Score</div>
-              </div>
-              <div className="score-item">
-                <div className="score-value">{questionCount}/{settings.questionCount}</div>
-                <div className="score-label">Progress</div>
-              </div>
-              <div className="score-item">
-                <div className="score-value">{elapsedTime > 0 ? (elapsedTime / 1000).toFixed(1) : '0.0'}s</div>
-                <div className="score-label">Time</div>
-              </div>
-            </div>
-            
-            {isRunning && (
-              <div className="controls" style={{ marginTop: '1rem' }}>
-                <button onClick={skipQuestion} className="skip-button">Skip</button>
-                <button onClick={resetTraining} className="end-button">End Game</button>
-              </div>
-            )}
-          </>
-        )}
-        
-        {feedback && (
-          <div className={`result-feedback ${feedback.type === 'correct' ? 'result-correct' : feedback.type === 'skipped' ? 'result-skipped' : 'result-incorrect'}`}>
-            {feedback.message}
-            {feedback.type === 'complete' && (
-              <div className="controls" style={{ marginTop: '1rem' }}>
-                <button onClick={startTraining}>Start New Session</button>
-              </div>
-            )}
-          </div>
-        )}
+          )}
+        </div>
         
         {/* Piano keyboard inside the main content area */}
         <div className="keyboard-wrapper">
