@@ -406,35 +406,18 @@ function ChordTrainer({ activeNotes, midiStatus }) {
         
         {/* Chord Types Selection */}
         <div className="settings-group chord-selection">
-          <h4>Chord Types</h4>
-          
-          {/* Active Chord Types Summary */}
-          <div className="active-chord-types">
-            <span>Active: </span>
-            {settings.chordTypes.length > 0 ? (
-              <span className="chord-type-pills">
-                {settings.chordTypes.map(type => {
-                  const chordDef = MusicTheory.CHORD_TYPES[type];
-                  return (
-                    <span key={type} className="chord-type-pill" title={type}>
-                      {chordDef?.displayName || type}
-                    </span>
-                  );
-                })}
-              </span>
-            ) : (
-              <span className="no-chords-selected">None selected</span>
-            )}
+          <h4>
+            Chord Types
             {settings.chordTypes.length > 0 && (
               <button 
                 className="clear-all-btn" 
                 onClick={() => setSettings({...settings, chordTypes: []})}
                 title="Clear all selected chord types"
               >
-                ×
+                Clear All
               </button>
             )}
-          </div>
+          </h4>
           
           {/* Triads Section */}
           <div className="chord-family-accordion">
