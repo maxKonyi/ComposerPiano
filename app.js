@@ -119,9 +119,11 @@ function App() {
             title="Chord Trainer" 
             onBack={() => setPage('home')}
             activeNotes={activeNotes}
-            midiStatus={{ midiAccess, midiError, midiInputs, selectedInput, handleInputChange }}
           >
-            <ChordTrainer activeNotes={activeNotes} />
+            <ChordTrainer 
+              activeNotes={activeNotes} 
+              midiStatus={{ midiAccess, midiError, midiInputs, selectedInput, handleInputChange }}
+            />
           </TrainerLayout>
         );
       case 'scale':
@@ -171,15 +173,13 @@ function Home({ onSelect, midiStatus, activeNotes }) {
   );
 }
 
-function TrainerLayout({ title, onBack, children, activeNotes, midiStatus }) {
+function TrainerLayout({ title, onBack, children, activeNotes }) {
   return (
     <div style={{ width: '100%', padding: '0 1rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 0' }}>
         <h2>{title}</h2>
         <button onClick={onBack}>Back</button>
       </div>
-      
-      <MidiStatus {...midiStatus} />
       
       <div style={{ margin: '1rem 0' }}>
         {children}
@@ -369,6 +369,9 @@ function Timer({ isRunning, elapsedTime, maxSeconds = 10 }) {
     </div>
   );
 }
+
+// Expose components to the global scope so they can be used in other files
+window.MidiStatus = MidiStatus;
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 

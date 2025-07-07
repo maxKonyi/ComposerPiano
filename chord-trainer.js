@@ -2,7 +2,7 @@
 const { useState, useEffect, useRef, useCallback } = React;
 
 // Chord Trainer Component
-function ChordTrainer({ activeNotes }) {
+function ChordTrainer({ activeNotes, midiStatus }) {
   // State for the trainer
   const [currentChord, setCurrentChord] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
@@ -262,6 +262,32 @@ function ChordTrainer({ activeNotes }) {
     <div className="app-container">
       {/* Left sidebar for settings */}
       <div className="sidebar">
+        <h3>Settings</h3>
+        
+        {/* MIDI Device Selection */}
+        <div className="settings-group">
+          <h4>MIDI Input</h4>
+          {midiStatus && (
+            <div style={{ margin: '0.5rem 0', padding: '0.5rem', background: '#333', borderRadius: '4px' }}>
+              <label>
+                MIDI Input: 
+                <select 
+                  value={midiStatus.selectedInput ? midiStatus.selectedInput.id : 'all'} 
+                  onChange={midiStatus.handleInputChange}
+                  style={{ marginLeft: '0.5rem', padding: '0.25rem', background: '#222', color: 'white', border: '1px solid #444' }}
+                >
+                  <option value="all">All inputs</option>
+                  {midiStatus.midiInputs.map(input => (
+                    <option key={input.id} value={input.id}>
+                      {input.name || input.manufacturer || 'Unknown Device'}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          )}
+        </div>
+        
         <div className="settings-panel">
           <h3 className="settings-title">Settings</h3>
           {/* Session Settings - Moved to top */}
