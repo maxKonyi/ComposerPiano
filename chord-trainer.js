@@ -266,7 +266,6 @@ function ChordTrainer({ activeNotes, midiStatus }) {
         
         {/* MIDI Device Selection */}
         <div className="settings-group">
-          <h4>MIDI Input</h4>
           {midiStatus && (
             <div style={{ margin: '0.5rem 0', padding: '0.5rem', background: '#333', borderRadius: '4px' }}>
               <label>
@@ -289,7 +288,6 @@ function ChordTrainer({ activeNotes, midiStatus }) {
         </div>
         
         <div className="settings-panel">
-          <h3 className="settings-title">Settings</h3>
           {/* Session Settings - Moved to top */}
           <div className="settings-group">
             <h4>Session</h4>

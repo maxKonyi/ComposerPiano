@@ -13,7 +13,7 @@ for (let i = 0; i < 128; i++) {
 }
 
 function App() {
-  const [page, setPage] = useState('home'); // 'home' | 'chord' | 'scale'
+  const [page, setPage] = useState('chord'); // 'chord' | 'scale'
   const [midiAccess, setMidiAccess] = useState(null);
   const [midiError, setMidiError] = useState(null);
   const [activeNotes, setActiveNotes] = useState(new Set());
@@ -112,73 +112,29 @@ function App() {
   };
 
   const renderContent = () => {
-    switch (page) {
-      case 'chord':
-        return (
-          <TrainerLayout 
-            title="Chord Trainer" 
-            onBack={() => setPage('home')}
-            activeNotes={activeNotes}
-          >
-            <ChordTrainer 
-              activeNotes={activeNotes} 
-              midiStatus={{ midiAccess, midiError, midiInputs, selectedInput, handleInputChange }}
-            />
-          </TrainerLayout>
-        );
-      case 'scale':
-        return (
-          <TrainerLayout 
-            title="Scale Trainer" 
-            onBack={() => setPage('home')}
-            activeNotes={activeNotes}
-            midiStatus={{ midiAccess, midiError, midiInputs, selectedInput, handleInputChange }}
-          >
-            <p>Scale trainer coming soon!</p>
-          </TrainerLayout>
-        );
-      default:
-        return (
-          <Home 
-            onSelect={setPage} 
-            midiStatus={{ midiAccess, midiError, midiInputs, selectedInput, handleInputChange }}
-            activeNotes={activeNotes}
-          />
-        );
-    }
+    return (
+      <TrainerLayout 
+        title="Piano Chord Trainer" 
+        activeNotes={activeNotes}
+      >
+        <ChordTrainer 
+          activeNotes={activeNotes} 
+          midiStatus={{ midiAccess, midiError, midiInputs, selectedInput, handleInputChange }}
+        />
+      </TrainerLayout>
+    );
   };
 
   return <div className="app-container">{renderContent()}</div>;
 }
 
-function Home({ onSelect, midiStatus, activeNotes }) {
-  return (
-    <div style={{ textAlign: 'center', maxWidth: '1000px', margin: '0 auto' }}>
-      <h1>Composer Piano Trainer</h1>
-      <p style={{ margin: '1rem 0 2rem' }}>Choose a training mode:</p>
-      <div>
-        <button onClick={() => onSelect('chord')}>Chord Trainer</button>
-        <button onClick={() => onSelect('scale')}>Scale Trainer</button>
-      </div>
-      
-      <MidiStatus {...midiStatus} />
-      
-      {/* Show keyboard even on home screen */}
-      <PianoKeyboard activeNotes={activeNotes} startOctave={3} endOctave={5} />
-      
-      <div style={{ marginTop: '2rem', fontSize: '0.9rem', color: '#888' }}>
-        <p>Connect a MIDI keyboard and play some notes to test your setup.</p>
-      </div>
-    </div>
-  );
-}
+// Home component removed as we now go directly to the chord trainer
 
-function TrainerLayout({ title, onBack, children, activeNotes }) {
+function TrainerLayout({ title, children, activeNotes }) {
   return (
     <div style={{ width: '100%', padding: '0 1rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 0' }}>
         <h2>{title}</h2>
-        <button onClick={onBack}>Back</button>
       </div>
       
       <div style={{ margin: '1rem 0' }}>

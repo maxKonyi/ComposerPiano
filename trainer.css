@@ -183,15 +183,7 @@
   border-radius: 0;
 }
 
-.settings-title {
-  margin-top: 0;
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
-  color: #ccc;
-  text-align: center;
-  border-bottom: 1px solid #333;
-  padding-bottom: 0.5rem;
-}
+/* Settings title removed - using main sidebar h3 instead */
 
 .settings-group {
   margin-bottom: 0.75rem;
