@@ -264,9 +264,9 @@ function PianoKeyboard({ activeNotes, startOctave = 3, endOctave = 5 }) {
           
           // Position the black key between white keys
           // For C# and F#, they need slightly different positioning than D#, G#, A#
-          let offset = 0.7;
+          let offset = 0.4; // Adjusted to center black keys better
           if (key.note === 'D#' || key.note === 'G#' || key.note === 'A#') {
-            offset = 0.8;
+            offset = 0.35; // Adjusted to center black keys better
           }
           
           return (
