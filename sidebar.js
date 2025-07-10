@@ -68,6 +68,19 @@ function Sidebar({ settings, setSettings, midiStatus, handleSelectPreset }) {
             </select>
           </label>
           
+          <label>
+            Difficulty: 
+            <select 
+              value={settings.difficulty}
+              onChange={e => setSettings({...settings, difficulty: e.target.value})}
+              style={{ marginLeft: '0.25rem', padding: '0.25rem', background: '#222', color: 'white', border: '1px solid #444' }}
+            >
+              <option value="easy">Easy (12s)</option>
+              <option value="medium">Medium (6s)</option>
+              <option value="hard">Hard (3s)</option>
+            </select>
+          </label>
+          
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
             <label style={{ fontSize: '0.9rem' }}>
               Delay: {(settings.questionDelay / 1000).toFixed(1)}s

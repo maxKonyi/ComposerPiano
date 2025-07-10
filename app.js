@@ -313,11 +313,21 @@ function PianoKeyboard({ activeNotes, startOctave = 3, endOctave = 5 }) {
 }
 
 // Timer component for chord and scale trainers
-function Timer({ isRunning, elapsedTime, maxSeconds = 10 }) {
+function Timer({ isRunning, elapsedTime, maxSeconds = 10, difficulty }) {
+  // Calculate max time based on difficulty if provided
+  const difficultyTimes = {
+    easy: 12,
+    medium: 6,
+    hard: 3
+  };
+  
+  // Use difficulty-based timing if provided, otherwise fall back to maxSeconds
+  const actualMaxSeconds = difficulty ? (difficultyTimes[difficulty] || maxSeconds) : maxSeconds;
+  const maxMs = actualMaxSeconds * 1000;
+  
   // Calculate color based on elapsed time percentages
-  const maxMs = maxSeconds * 1000;
   const yellowThreshold = maxMs * 0.3; // 30% of max time
-  const redThreshold = maxMs * 0.5;    // 50% of max time
+  const redThreshold = maxMs * 0.75;   // 75% of max time - turn red in last quarter
   
   let timerClass = 'timer-green';
   if (elapsedTime > redThreshold) {
@@ -326,7 +336,7 @@ function Timer({ isRunning, elapsedTime, maxSeconds = 10 }) {
     timerClass = 'timer-yellow';
   }
   
-  // Calculate width percentage based on maxSeconds
+  // Calculate width percentage based on actualMaxSeconds
   const widthPercentage = Math.min(elapsedTime / maxMs * 100, 100);
   
   return (

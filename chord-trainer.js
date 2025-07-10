@@ -5,6 +5,32 @@ const Sidebar = window.Sidebar;
 
 // Note: PresetSelector has been moved to sidebar.js
 
+// Lives Display Component
+function LivesDisplay({ lives }) {
+  return (
+    <div className="lives-display">
+      {[...Array(3)].map((_, i) => (
+        <div 
+          key={i} 
+          className={`life-icon ${i < lives ? 'life-active' : 'life-lost'}`}
+        >
+          ♥
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Helper function to get time in milliseconds based on difficulty
+function getDifficultyTime(difficulty) {
+  switch(difficulty) {
+    case 'easy': return 12;
+    case 'hard': return 3;
+    case 'medium':
+    default: return 6;
+  }
+}
+
 // Chord Trainer Component
 function ChordTrainer({ activeNotes, midiStatus }) {
   // State for the trainer
@@ -17,6 +43,13 @@ function ChordTrainer({ activeNotes, midiStatus }) {
   const [questionCount, setQuestionCount] = useState(0);
   // Total questions will come from settings
   
+  // Game state variables
+  const [lives, setLives] = useState(3);           // Player starts with 3 lives
+  const [streak, setStreak] = useState(0);         // Current streak of correct answers
+  const [multiplier, setMultiplier] = useState(1); // Score multiplier based on streak
+  const [highestStreak, setHighestStreak] = useState(0); // Track highest streak
+  const [accuracy, setAccuracy] = useState(0);     // Percentage of correct answers
+  
   // Settings for chord generation
   const [settings, setSettings] = useState({
     chordTypes: ['major', 'minor'], // Start with just major and minor triads
@@ -28,7 +61,8 @@ function ChordTrainer({ activeNotes, midiStatus }) {
     questionCount: 10, // Number of questions per session
     questionDelay: 1500, // Delay between questions in milliseconds (default 1.5 seconds)
     optionalFifth: false, // 5th optional for 7th chords and larger
-    activePresetId: null // Track the currently active preset
+    activePresetId: null, // Track the currently active preset
+    difficulty: 'medium' // 'easy' (12s), 'medium' (6s), or 'hard' (3s)
   });
   
   // Reference to track active notes
@@ -222,6 +256,11 @@ function ChordTrainer({ activeNotes, midiStatus }) {
     setElapsedTime(0);
     setFeedback(null); // Clear any feedback messages
     setCurrentChord(null); // Clear current chord before generating a new one
+    setLives(3); // Reset lives
+    setStreak(0); // Reset streak
+    setMultiplier(1); // Reset multiplier
+    setHighestStreak(0); // Reset highest streak
+    setAccuracy(0); // Reset accuracy
     
     // Stop any existing timer
     if (timerRef.current) {
@@ -254,6 +293,9 @@ function ChordTrainer({ activeNotes, midiStatus }) {
     setIsRunning(false);
     setCurrentChord(null);
     setElapsedTime(0);
+    setLives(3);
+    setStreak(0);
+    setMultiplier(1);
     
     // Show a feedback message with the final score
     setFeedback({
@@ -292,9 +334,9 @@ function ChordTrainer({ activeNotes, midiStatus }) {
           timerRef.current = null;
         }
         
-        // Calculate score (faster = more points) based on timer settings
+        // Calculate score with multiplier
         const responseTime = elapsedTime;
-        const maxTime = settings.timerMaxSeconds * 1000;
+        const maxTime = getDifficultyTime(settings.difficulty) * 1000;
         let pointsEarned = 0;
         
         // Dynamic scoring based on percentage of max time
@@ -312,16 +354,38 @@ function ChordTrainer({ activeNotes, midiStatus }) {
           pointsEarned = 1;
         }
         
+        // Update streak and multiplier
+        const newStreak = streak + 1;
+        setStreak(newStreak);
+        
+        // Update highest streak if needed
+        if (newStreak > highestStreak) {
+          setHighestStreak(newStreak);
+        }
+        
+        // Calculate multiplier (cap at 5x)
+        const newMultiplier = Math.min(Math.floor(newStreak / 2) + 1, 5);
+        setMultiplier(newMultiplier);
+        
+        // Apply multiplier to points
+        pointsEarned *= newMultiplier;
+        
+        // Update accuracy
+        const correctAnswers = questionCount + 1; // Current question is correct
+        const totalAttempts = correctAnswers; // For now, total attempts equals correct answers
+        const newAccuracy = Math.round((correctAnswers / totalAttempts) * 100);
+        setAccuracy(newAccuracy);
+        
         // Update score and question count
         setScore(prevScore => prevScore + pointsEarned);
         const newQuestionCount = questionCount + 1;
         setQuestionCount(newQuestionCount);
         setIsRunning(false);
         
-        // Show feedback
+        // Show feedback with multiplier information
         setFeedback({
           type: 'correct',
-          message: `Correct! +${pointsEarned} points`,
+          message: `Correct! +${pointsEarned} points (×${newMultiplier})`,
           time: responseTime
         });
         
@@ -360,6 +424,49 @@ function ChordTrainer({ activeNotes, midiStatus }) {
     }
   }, [activeNotes, currentChord, isRunning, elapsedTime, generateNewQuestion]);
   
+  // Monitor timer completion
+  useEffect(() => {
+    if (isRunning && elapsedTime >= getDifficultyTime(settings.difficulty) * 1000) {
+      // Timer is complete, lose a life
+      const newLives = lives - 1;
+      setLives(newLives);
+      
+      // Reset streak and multiplier
+      setStreak(0);
+      setMultiplier(1);
+      
+      // Stop the timer
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      
+      if (newLives <= 0) {
+        // Game over
+        setIsRunning(false);
+        setFeedback({
+          type: 'gameover',
+          message: `Game over! Final score: ${score}`
+        });
+      } else {
+        // Continue with same chord
+        setFeedback({
+          type: 'timeout',
+          message: `Time's up! ${newLives} ${newLives === 1 ? 'life' : 'lives'} remaining.`
+        });
+        
+        // Restart timer for the same chord
+        const now = Date.now();
+        setStartTime(now);
+        setElapsedTime(0);
+        
+        timerRef.current = setInterval(() => {
+          setElapsedTime(Date.now() - now);
+        }, 100);
+      }
+    }
+  }, [isRunning, elapsedTime, settings.difficulty, lives, score]);
+  
   // Clean up timer on unmount
   useEffect(() => {
     return () => {
@@ -389,7 +496,15 @@ function ChordTrainer({ activeNotes, midiStatus }) {
         </div>
         
         {/* Timer - always visible */}
-        <Timer isRunning={isRunning} elapsedTime={elapsedTime} maxSeconds={settings.timerMaxSeconds} />
+        <Timer 
+          isRunning={isRunning} 
+          elapsedTime={elapsedTime} 
+          maxSeconds={settings.timerMaxSeconds} 
+          difficulty={settings.difficulty} 
+        />
+        
+        {/* Lives display - shows remaining lives */}
+        <LivesDisplay lives={lives} />
         
         {/* Score display - always visible */}
         <div className="score-display">

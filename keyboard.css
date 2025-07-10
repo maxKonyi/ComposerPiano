@@ -1,6 +1,39 @@
 /* Piano Keyboard Styling */
 /* Removed pulsing glow animation */
 
+/* Game UI Elements */
+/* Lives display */
+.lives-display {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.life-icon {
+  font-size: 20px;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+.life-active {
+  color: #bb86fc; /* Purple to match the keyboard aesthetic */
+  opacity: 1;
+}
+
+.life-lost {
+  color: #444;
+  opacity: 0.5;
+}
+
+.life-shake {
+  animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-3px); }
+  40%, 80% { transform: translateX(3px); }
+}
+
 /* Dark Mode Variables */
 :root {
   --white-key-bg: linear-gradient(to bottom, #fff, #f0f0f0);
