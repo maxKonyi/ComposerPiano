@@ -76,9 +76,6 @@ function GameSummary({ questionCount, settings, score, accuracy, highestStreak, 
         <div className="summary-item">
           <div className="summary-value">{accuracy}%</div>
           <div className="summary-label">Accuracy</div>
-          {wrongNotesCount > 0 && (
-            <div className="summary-note">({wrongNotesCount} wrong attempts)</div>
-          )}
         </div>
         <div className="summary-item">
           <div className={`summary-value ${isNewRecord ? 'new-record' : ''}`}>
@@ -748,7 +745,7 @@ function ChordTrainer({ activeNotes, midiStatus }) {
       <>
         {/* Question display */}
         <div className="question-display">
-          {currentChord ? currentChord.displayName : 'C#m'}
+          {currentChord ? currentChord.displayName : '---'}
         </div>
             
             {/* Timer */}
