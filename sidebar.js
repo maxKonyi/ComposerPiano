@@ -176,7 +176,7 @@ function Sidebar({ settings, setSettings, midiStatus, handleSelectPreset }) {
         
         {/* Triads Section - Compact Layout */}
         <div className="chord-family-accordion" style={{ marginBottom: '0.3rem' }}>
-          <div className="chord-family-header" style={{ padding: '0.2rem 0.3rem', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="chord-family-header" style={{ padding: '0.2rem 0.3rem', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}>
             <span>Triads</span>
             <label className="select-all-switch" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center' }}>
               <input 
@@ -315,7 +315,7 @@ function Sidebar({ settings, setSettings, midiStatus, handleSelectPreset }) {
         
         {/* 6th Chords Category - Compact Layout */}
         <div className="chord-family-accordion" style={{ marginBottom: '0.3rem' }}>
-          <div className="chord-family-header" style={{ padding: '0.2rem 0.3rem', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="chord-family-header" style={{ padding: '0.2rem 0.3rem', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}>
             <span>6th Chords</span>
             <label className="select-all-switch" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center' }}>
               <input
@@ -380,7 +380,7 @@ function Sidebar({ settings, setSettings, midiStatus, handleSelectPreset }) {
 
         {/* 7th Chords Section - Compact Layout */}
         <div className="chord-family-accordion" style={{ marginBottom: '0.3rem' }}>
-          <div className="chord-family-header" style={{ padding: '0.2rem 0.3rem', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="chord-family-header" style={{ padding: '0.2rem 0.3rem', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}>
             <span>7th Chords</span>
             <label className="select-all-switch" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center' }}>
               <input 
@@ -525,7 +525,7 @@ function Sidebar({ settings, setSettings, midiStatus, handleSelectPreset }) {
         
         {/* 9th Chords Section - Compact Layout */}
         <div className="chord-family-accordion" style={{ marginBottom: '0.3rem' }}>
-          <div className="chord-family-header" style={{ padding: '0.2rem 0.3rem', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="chord-family-header" style={{ padding: '0.2rem 0.3rem', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}>
             <span>9th Chords</span>
             <label className="select-all-switch" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center' }}>
               <input 
