@@ -38,7 +38,7 @@ function Sidebar({ settings, setSettings, midiStatus, handleSelectPreset }) {
         
         {/* Session Settings - Compact Layout */}
         <div className="settings-group">
-          <h4 style={{ marginBottom: '0.25rem', fontSize: '0.9rem' }}>Session</h4>
+          <h4 style={{ marginBottom: '0.1rem', fontSize: '0.9rem' }}>Session</h4>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', alignItems: 'center' }}>
             <label style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center' }}>
             Q: 
