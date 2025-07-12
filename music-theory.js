@@ -525,9 +525,11 @@ MusicTheory.generateRandomChord = function(settings) {
   // Choose inversion
   let inversion = 'root';
   if (config.allowInversions) {
-    // Prevent inversions for augmented triads (simple 3-note aug chords)
+    // Prevent inversions for augmented triads, sus2, and sus4 chords
     const isAugTriad = chordType === 'augmented' && MusicTheory.CHORD_TYPES['augmented'].intervals.length === 3;
-    if (!isAugTriad) {
+    const isSusChord = chordType === 'sus2' || chordType === 'sus4';
+    
+    if (!isAugTriad && !isSusChord) {
       const possibleInversions = ['root', 'first', 'second'];
       // Add third inversion only for seventh chords
       if (chordType.includes('7')) {

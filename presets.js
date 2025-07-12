@@ -11,28 +11,13 @@ Presets.COLLECTIONS = [
     name: "Beginner",
     presets: [
       {
-        id: "major-triads",
-        name: "Major Triads",
-        description: "Basic major triads in root position",
-        settings: {
-          chordTypes: ['major'],
-          allowInversions: false,
-          rootNotes: ['C', 'F', 'G'],
-          octave: 4,
-          timerMaxSeconds: 15,
-          questionCount: 10,
-          questionDelay: 1500,
-          optionalFifth: false
-        }
-      },
-      {
-        id: "major-minor-triads",
-        name: "Major & Minor Triads",
+        id: "major-minor-triads-root",
+        name: "Major & Minor Triads in Root Position",
         description: "Major and minor triads in root position",
         settings: {
           chordTypes: ['major', 'minor'],
           allowInversions: false,
-          rootNotes: ['C', 'F', 'G', 'A', 'D'],
+          rootNotes: [],
           octave: 4,
           timerMaxSeconds: 15,
           questionCount: 10,
@@ -41,13 +26,58 @@ Presets.COLLECTIONS = [
         }
       },
       {
-        id: "major-first-inv",
-        name: "Major Triads with 1st Inversion",
-        description: "Major triads in root and first inversion",
+        id: "maj-min-triads-inversions",
+        name: "Major & Minor Triads with Inversions",
+        description: "Major and minor triads with all inversions",
         settings: {
-          chordTypes: ['major'],
+          chordTypes: ['major', 'minor'],
           allowInversions: true,
-          rootNotes: ['C', 'F', 'G'],
+          rootNotes: [],
+          octave: 4,
+          timerMaxSeconds: 15,
+          questionCount: 10,
+          questionDelay: 1500,
+          optionalFifth: false
+        }
+      },
+      {
+        id: "aug-dim-root",
+        name: "Augmented & Diminished Triads",
+        description: "Augmented and diminished triads in root position",
+        settings: {
+          chordTypes: ['augmented', 'diminished'],
+          allowInversions: false,
+          rootNotes: [],
+          octave: 4,
+          timerMaxSeconds: 15,
+          questionCount: 10,
+          questionDelay: 1500,
+          optionalFifth: false
+        }
+      },
+      {
+        id: "sus2-sus4-root",
+        name: "Sus2 & Sus4 Triads",
+        description: "Suspended 2nd and 4th chords in root position",
+        settings: {
+          chordTypes: ['sus2', 'sus4'],
+          allowInversions: false,
+          rootNotes: [],
+          octave: 4,
+          timerMaxSeconds: 15,
+          questionCount: 10,
+          questionDelay: 1500,
+          optionalFifth: false
+        }
+      },
+      {
+        id: "all-triads-inversions",
+        name: "All Triads with Inversions",
+        description: "All triad types with all inversions",
+        settings: {
+          chordTypes: ['major', 'minor', 'augmented', 'diminished', 'sus2', 'sus4'],
+          allowInversions: true,
+          rootNotes: [],
           octave: 4,
           timerMaxSeconds: 15,
           questionCount: 10,
@@ -62,11 +92,11 @@ Presets.COLLECTIONS = [
     name: "Intermediate",
     presets: [
       {
-        id: "all-triads",
-        name: "All Triad Types",
-        description: "Major, minor, diminished and augmented triads",
+        id: "maj7-min7-dom7-root",
+        name: "Maj7, m7 & 7 in Root",
+        description: "Major 7th, minor 7th and dominant 7th chords in root position",
         settings: {
-          chordTypes: ['major', 'minor', 'diminished', 'augmented'],
+          chordTypes: ['major7', 'minor7', 'dominant7'],
           allowInversions: false,
           rootNotes: [],
           octave: 4,
@@ -77,12 +107,12 @@ Presets.COLLECTIONS = [
         }
       },
       {
-        id: "triads-all-inv",
-        name: "Triads with All Inversions",
-        description: "Major and minor triads in all inversions",
+        id: "dim7-m7b5-mmaj7-root",
+        name: "Dim7, m7b5 & m(maj7) in Root",
+        description: "Diminished 7th, half-diminished 7th and minor-major 7th in root position",
         settings: {
-          chordTypes: ['major', 'minor'],
-          allowInversions: true,
+          chordTypes: ['diminished7', 'halfDiminished7', 'minorMajor7'],
+          allowInversions: false,
           rootNotes: [],
           octave: 4,
           timerMaxSeconds: 12,
@@ -92,11 +122,26 @@ Presets.COLLECTIONS = [
         }
       },
       {
-        id: "seventh-chords",
-        name: "Basic 7th Chords",
-        description: "Major 7th and Dominant 7th chords",
+        id: "maj6-min6-root",
+        name: "Maj & Min 6 in Root",
+        description: "Major 6th and minor 6th chords in root position",
         settings: {
-          chordTypes: ['major7', 'dominant7'],
+          chordTypes: ['6', 'm6'],
+          allowInversions: false,
+          rootNotes: [],
+          octave: 4,
+          timerMaxSeconds: 12,
+          questionCount: 15,
+          questionDelay: 1500,
+          optionalFifth: false
+        }
+      },
+      {
+        id: "all-6ths-7ths-root",
+        name: "All 6ths & 7ths in Root",
+        description: "All 6th and 7th chord types in root position",
+        settings: {
+          chordTypes: ['6', 'm6', 'major7', 'minor7', 'dominant7', 'diminished7', 'halfDiminished7', 'minorMajor7'],
           allowInversions: false,
           rootNotes: [],
           octave: 4,
@@ -113,26 +158,11 @@ Presets.COLLECTIONS = [
     name: "Advanced",
     presets: [
       {
-        id: "all-sevenths",
-        name: "All 7th Chord Types",
-        description: "All types of 7th chords in root position",
+        id: "all-sevenths-inversions",
+        name: "All Sevenths with Inversions",
+        description: "All types of 7th chords with all inversions",
         settings: {
-          chordTypes: ['major7', 'dominant7', 'minor7', 'diminished7', 'halfDiminished7', 'minorMajor7'],
-          allowInversions: false,
-          rootNotes: [],
-          octave: 4,
-          timerMaxSeconds: 10,
-          questionCount: 15,
-          questionDelay: 1200,
-          optionalFifth: true
-        }
-      },
-      {
-        id: "sevenths-inversions",
-        name: "7th Chords with Inversions",
-        description: "Major 7th and Dominant 7th with inversions",
-        settings: {
-          chordTypes: ['major7', 'dominant7'],
+          chordTypes: ['major7', 'minor7', 'dominant7', 'diminished7', 'halfDiminished7', 'minorMajor7'],
           allowInversions: true,
           rootNotes: [],
           octave: 4,
@@ -143,12 +173,72 @@ Presets.COLLECTIONS = [
         }
       },
       {
-        id: "ninth-chords",
-        name: "9th Chords",
-        description: "Extended 9th chords",
+        id: "maj9-min9-dom9-mM9root",
+        name: "Primary Ninths",
+        description: "Major 9th, minor 9th, dominant 9th, and minor-major 9th in root position",
         settings: {
-          chordTypes: ['dominant9', 'major9', 'minor9'],
+          chordTypes: ['major9', 'minor9', 'dominant9', 'minorMajor9'],
           allowInversions: false,
+          rootNotes: [],
+          octave: 4,
+          timerMaxSeconds: 10,
+          questionCount: 15,
+          questionDelay: 1200,
+          optionalFifth: true
+        }
+      },
+      {
+        id: "six-nine-chords-root",
+        name: "6(9) & m6(9) in Root",
+        description: "Major 6/9 and minor 6/9 in root position",
+        settings: {
+          chordTypes: ['6(9)', 'm6(9)'],
+          allowInversions: false,
+          rootNotes: [],
+          octave: 4,
+          timerMaxSeconds: 10,
+          questionCount: 15,
+          questionDelay: 1200,
+          optionalFifth: true
+        }
+      },
+      {
+        id: "all-ninths-root",
+        name: "All Ninths in Root",
+        description: "All types of 9th chords in root position",
+        settings: {
+          chordTypes: ['major9', 'minor9', 'dominant9', '6(9)', 'm6(9)'],
+          allowInversions: false,
+          rootNotes: [],
+          octave: 4,
+          timerMaxSeconds: 10,
+          questionCount: 15,
+          questionDelay: 1200,
+          optionalFifth: true
+        }
+      },
+      {
+        id: "all-chords",
+        name: "All Chords",
+        description: "All chord types in root position",
+        settings: {
+          chordTypes: ['major', 'minor', 'augmented', 'diminished', 'sus2', 'sus4', '6', 'm6', 'major7', 'minor7', 'dominant7', 'diminished7', 'halfDiminished7', 'minorMajor7', 'major9', 'minor9', 'dominant9', '6(9)', 'm6(9)'],
+          allowInversions: false,
+          rootNotes: [],
+          octave: 4,
+          timerMaxSeconds: 10,
+          questionCount: 15,
+          questionDelay: 1200,
+          optionalFifth: true
+        }
+      },
+      {
+        id: "all-chords-inversions",
+        name: "All Chords with Inversions",
+        description: "All chord types with all inversions",
+        settings: {
+          chordTypes: ['major', 'minor', 'augmented', 'diminished', 'sus2', 'sus4', '6', 'm6', 'major7', 'minor7', 'dominant7', 'diminished7', 'halfDiminished7', 'minorMajor7', 'major9', 'minor9', 'dominant9', '6(9)', 'm6(9)'],
+          allowInversions: true,
           rootNotes: [],
           octave: 4,
           timerMaxSeconds: 10,
