@@ -209,6 +209,7 @@ function ChordTrainer({ activeNotes, midiStatus }) {
   // State for the trainer
   const [currentChord, setCurrentChord] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
+  const [isProcessingChord, setIsProcessingChord] = useState(false);
   const [startTime, setStartTime] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [score, setScore] = useState(0);
@@ -435,6 +436,7 @@ function ChordTrainer({ activeNotes, midiStatus }) {
     
     // Update game state
     setIsRunning(true);
+    setIsProcessingChord(false); // Reset processing flag when generating a new question
     const now = Date.now();
     setStartTime(now);
     setFeedback(null);
@@ -532,7 +534,10 @@ function ChordTrainer({ activeNotes, midiStatus }) {
         }
         return count;
       })();
-      if (currentChord && isRunning && activeNotes.size >= requiredNoteCount) {
+      if (currentChord && isRunning && !isProcessingChord && activeNotes.size >= requiredNoteCount) {
+      // Set processing flag to prevent re-entry while handling this chord
+      setIsProcessingChord(true);
+        
       // Convert activeNotes Set to an array of MIDI note numbers
       const playedNotesArray = Array.from(activeNotes);
       const isCorrect = MusicTheory.validateChord(playedNotesArray, currentChord);
@@ -613,7 +618,7 @@ function ChordTrainer({ activeNotes, midiStatus }) {
         setScore(prevScore => prevScore + pointsEarned);
         const newQuestionCount = questionCount + 1;
         setQuestionCount(newQuestionCount);
-        setIsRunning(false);
+        // We'll keep isRunning true but set isProcessingChord to false after the delay
         
         // Show feedback with multiplier information
         setFeedback({
@@ -666,6 +671,11 @@ function ChordTrainer({ activeNotes, midiStatus }) {
         setTimeout(() => {
           generateNewQuestion();
         }, settings.questionDelay);
+        
+        // Reset processing flag after a short delay to prevent multiple triggers
+        setTimeout(() => {
+          setIsProcessingChord(false);
+        }, 500);
       }
     }
   }, [activeNotes, currentChord, isRunning, elapsedTime, generateNewQuestion]);
