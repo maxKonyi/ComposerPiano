@@ -153,8 +153,8 @@ function isPracticeMode(difficulty) {
 
 // Sound effect function
 const playSound = (type, settings) => {
-  // If audio is muted, don't play any sounds
-  if (settings && settings.muteAudio) {
+  // If audio is muted or this is the wrong chord sound, don't play any sounds
+  if ((settings && settings.muteAudio) || type === 'wrong') {
     return;
   }
   
