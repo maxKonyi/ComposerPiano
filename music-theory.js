@@ -658,8 +658,25 @@ MusicTheory.validateChord = function(playedNotes, expectedChord) {
     rootPc = toPc(expectedChord.root);
   }
 
-  // If inversions are not being checked, use simple pitch class validation
+  // If inversions are not being checked, require root position
   if (!expectedChord.checkInversion) {
+    // Find the lowest played note (bass note)
+    const lowestPlayedNote = Math.min(...playedNotes);
+    const lowestPlayedPitchClass = lowestPlayedNote % 12;
+    
+    // Get the expected root note's pitch class
+    const rootNote = expectedChord.midiNotes[expectedChord.midiNotes.length - 1]; // Last note is the highest in root position
+    const rootPitchClass = rootNote % 12;
+    
+    // For root position, the lowest note must be the root note
+    // Find the expected root note pitch class
+    const expectedRootPitchClass = expectedChord.midiNotes[0] % 12;
+    
+    // Check if bass note is the root
+    if (lowestPlayedPitchClass !== expectedRootPitchClass) {
+      return false; // Not in root position
+    }
+    
     // Convert played notes to a Set of pitch classes (0-11)
     const playedPitchClasses = new Set();
     playedNotes.forEach(midi => {
