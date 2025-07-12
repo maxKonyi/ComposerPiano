@@ -232,6 +232,7 @@
   /* Removed background gradient */
   /* Removed padding */
   transition: all 0.5s ease;
+  z-index: 1; /* Add a low z-index so modal can appear above */
 }
 
 /* Removed gradient animation */

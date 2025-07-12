@@ -1,11 +1,103 @@
 // Import React hooks from the global React object
 const { useState, useEffect, useRef } = React;
 
+// Help Modal Component
+function HelpModal({ isOpen, onClose }) {
+  if (!isOpen) return null;
+  
+  // Create the modal content
+  const modalContent = (
+    <div className="help-modal-overlay" onClick={onClose}>
+      <div className="help-modal-content" onClick={e => e.stopPropagation()}>
+        <button className="help-close-btn" onClick={onClose}>×</button>
+        <h3>How to Use Composer Piano</h3>
+        
+        <div className="help-section">
+          <h4>Getting Started</h4>
+          <p>Welcome to Composer Piano, a tool to help you learn and practice piano chords!</p>
+          <p>To begin, make sure your MIDI keyboard is connected. Then either:</p>
+          <ul>
+            <li>Select a preset from the dropdown menu, or</li>
+            <li>Customize your training using the settings in the sidebar</li>
+          </ul>
+          <p>Click the <strong>Start</strong> button when you're ready to begin.</p>
+        </div>
+        
+        <div className="help-section">
+          <h4>Session Settings</h4>
+          <ul>
+            <li><strong>Q:</strong> Number of questions in your practice session</li>
+            <li><strong>Diff:</strong> Difficulty level (Practice mode gives unlimited time)</li>
+            <li><strong>Inv:</strong> Inversion mode
+              <ul>
+                <li>No - Play chords in root position only</li>
+                <li>Yes - Play specific inversions as shown</li>
+                <li>Free - Any inversion of the chord is accepted</li>
+              </ul>
+            </li>
+            <li><strong>Delay:</strong> Time between questions</li>
+          </ul>
+        </div>
+        
+        <div className="help-section">
+          <h4>Chord Types</h4>
+          <p>Select which chord types you want to practice:</p>
+          <ul>
+            <li><strong>Triads:</strong> Major, Minor, Diminished, Augmented, Sus2, Sus4</li>
+            <li><strong>6th Chords:</strong> Major 6th, Minor 6th</li>
+            <li><strong>7th Chords:</strong> Dominant 7th, Major 7th, Minor 7th, etc.</li>
+          </ul>
+          <p>Use the <strong>Clear All</strong> button to deselect all chord types.</p>
+        </div>
+        
+        <div className="help-section">
+          <h4>Playing the Game</h4>
+          <p>When a chord appears on screen:</p>
+          <ol>
+            <li>Read the chord name and any inversion indicator</li>
+            <li>Play the chord on your MIDI keyboard</li>
+            <li>If correct, you'll see a green confirmation</li>
+            <li>If incorrect, you can try again until time runs out</li>
+          </ol>
+          <p>In Practice mode, there's no time limit, so you can take your time learning each chord.</p>
+        </div>
+        
+        <div className="help-section">
+          <h4>Tips</h4>
+          <ul>
+            <li>Start with the Basic Triads preset if you're new to piano chords</li>
+            <li>Use Practice mode to learn new chord types without pressure</li>
+            <li>Gradually increase difficulty as you improve</li>
+            <li>Toggle between light and dark keyboard modes using the button above the keyboard</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+  
+  // Use createPortal to render the modal at the document body level
+  // This ensures it's outside any stacking contexts that might affect z-index
+  return ReactDOM.createPortal(modalContent, document.body);
+}
+
 // Sidebar Component
 function Sidebar({ settings, setSettings, midiStatus, handleSelectPreset }) {
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  
   return (
     <div className="sidebar">
-      <h3>Settings</h3>
+      <div className="sidebar-header">
+        <h3>Settings</h3>
+        <button 
+          className="help-button" 
+          onClick={() => setIsHelpOpen(true)}
+          title="View help and tutorial"
+        >
+          Help
+        </button>
+      </div>
+      
+      <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
       
       {/* MIDI Device Selection */}
       <div className="settings-group">
