@@ -361,6 +361,118 @@
   }
 }
 
+/* Sidebar Tabs */
+.sidebar-tabs {
+  display: flex;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #3a2a4a;
+}
+
+.sidebar-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #c5b8d5;
+  padding: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.sidebar-tab.active {
+  color: #bb86fc;
+  border-bottom: 2px solid #bb86fc;
+}
+
+.sidebar-tab:hover:not(.active) {
+  color: white;
+  background-color: rgba(187, 134, 252, 0.1);
+}
+
+/* Key Selector */
+.key-selector {
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background-color: rgba(58, 42, 74, 0.3);
+  border-radius: 4px;
+}
+
+/* Chord Progression Display */
+.progression-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0.5rem 0 1rem;
+  padding: 0.5rem;
+  background-color: rgba(30, 20, 40, 0.3);
+  border-radius: 6px;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.progression-name {
+  font-size: 0.9rem;
+  color: #bb86fc;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.progression-chords {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.7rem;
+  margin-bottom: 0.3rem;
+  padding: 0.3rem;
+}
+
+.progression-chord {
+  padding: 0.5rem 1rem;
+  background: linear-gradient(to bottom, #2d1e3e, #1a1228);
+  border: 1px solid #3a2a4a;
+  border-radius: 4px;
+  position: relative;
+  font-size: 0.95rem;
+  min-width: 60px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.progression-chord.current {
+  border-color: #bb86fc;
+  box-shadow: 0 0 8px rgba(187, 134, 252, 0.6);
+  transform: translateY(-2px);
+  background: linear-gradient(to bottom, #3d2e4e, #2a2238);
+}
+
+.progression-chord.completed {
+  opacity: 0.7;
+  border-color: #4CAF50;
+}
+
+.progression-indicator {
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  background-color: transparent;
+  transition: background-color 0.3s ease;
+}
+
+.progression-indicator.current {
+  background-color: #bb86fc;
+  box-shadow: 0 0 5px rgba(187, 134, 252, 0.4);
+  height: 4px;
+}
+
+.progression-indicator.completed {
+  background-color: #4CAF50;
+  height: 3px;
+}
+
 /* Chord Selection Accordion UI */
 /* Chord family accordion */
 .chord-family-accordion {

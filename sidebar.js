@@ -278,24 +278,202 @@ function Sidebar({ settings, setSettings, midiStatus, handleSelectPreset }) {
         </div>
       </div>
       
-      {/* Chord Types Selection - Compact Layout */}
+      {/* Tabs for Chord Types and Progressions */}
       <div className="settings-group chord-selection">
-        <h4 style={{ marginBottom: '0.25rem', fontSize: '0.9rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          Chord Types
-          {settings.chordTypes.length > 0 && (
-            <button 
-              className="clear-all-btn" 
-              onClick={() => setSettings({...settings, chordTypes: []})}
-              title="Clear all selected chord types"
-              style={{ fontSize: '0.75rem', padding: '0.1rem 0.3rem' }}
-            >
-              Clear All
-            </button>
-          )}
-        </h4>
+        <div className="sidebar-tabs">
+          <button 
+            className={`sidebar-tab ${!settings.useProgressions ? 'active' : ''}`}
+            onClick={() => setSettings({...settings, useProgressions: false})}
+          >
+            Qualities
+          </button>
+          <button 
+            className={`sidebar-tab ${settings.useProgressions ? 'active' : ''}`}
+            onClick={() => setSettings({...settings, useProgressions: true})}
+          >
+            Progressions
+          </button>
+        </div>
+        
+        {/* Key Selector - Only visible when progressions are enabled */}
+        {settings.useProgressions && (
+          <div className="key-selector" style={{ marginTop: '0.5rem', marginBottom: '0.5rem' }}>
+            <label style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              Key:
+              <select
+                value={settings.keyMode}
+                onChange={e => {
+                  const newKeyMode = e.target.value;
+                  const newSettings = {
+                    ...settings,
+                    keyMode: newKeyMode
+                  };
+                  // If switching to fixed key, set a default key if not already set
+                  if (newKeyMode === 'fixed' && !settings.fixedKey) {
+                    newSettings.fixedKey = 'C';
+                  }
+                  setSettings(newSettings);
+                }}
+                style={{ marginLeft: '0.5rem', padding: '0.15rem', background: '#222', color: 'white', border: '1px solid #444', fontSize: '0.85rem' }}
+              >
+                <option value="random">Random Key</option>
+                <option value="fixed">Fixed Key</option>
+              </select>
+            </label>
+            
+            {/* Fixed Key Selector - Only visible when fixed key is selected */}
+            {settings.keyMode === 'fixed' && (
+              <div style={{ marginTop: '0.5rem' }}>
+                <label style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  Fixed Key:
+                  <select
+                    value={settings.fixedKey || 'C'}
+                    onChange={e => setSettings({...settings, fixedKey: e.target.value})}
+                    style={{ marginLeft: '0.5rem', padding: '0.15rem', background: '#222', color: 'white', border: '1px solid #444', fontSize: '0.85rem' }}
+                  >
+                    {['C', 'C#', 'Db', 'D', 'D#', 'Eb', 'E', 'F', 'F#', 'Gb', 'G', 'G#', 'Ab', 'A', 'A#', 'Bb', 'B'].map(key => (
+                      <option key={key} value={key}>{key}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Chord Qualities Tab Content */}
+        {!settings.useProgressions && (
+          <>
+            <h4 style={{ marginBottom: '0.25rem', fontSize: '0.9rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              Chord Types
+              {settings.chordTypes.length > 0 && (
+                <button 
+                  className="clear-all-btn" 
+                  onClick={() => setSettings({...settings, chordTypes: []})}
+                  title="Clear all selected chord types"
+                  style={{ fontSize: '0.75rem', padding: '0.1rem 0.3rem' }}
+                >
+                  Clear All
+                </button>
+              )}
+            </h4>
+          </>  
+        )}
+        
+        {/* Progressions Tab Content */}
+        {settings.useProgressions && (
+          <div className="progression-selection">
+            <h4 style={{ marginBottom: '0.25rem', fontSize: '0.9rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              Progression Types
+              {(settings.selectedProgressions && settings.selectedProgressions.length > 0) && (
+                <button 
+                  className="clear-all-btn" 
+                  onClick={() => setSettings({...settings, selectedProgressions: []})}
+                  title="Clear all selected progression types"
+                  style={{ fontSize: '0.75rem', padding: '0.1rem 0.3rem' }}
+                >
+                  Clear All
+                </button>
+              )}
+            </h4>
+            
+            {/* Simple Progressions */}
+            <div className="chord-family-accordion" style={{ marginBottom: '0.3rem' }}>
+              <div className="chord-family-header" style={{ padding: '0.2rem 0.3rem', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}>
+                <span>Simple</span>
+              </div>
+              
+              <div className="chord-family-content" style={{display: 'block', marginTop: '0.2rem'}}>
+                <div className="chord-type-toggles" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.25rem' }}>
+                  {Presets.PROGRESSION_COLLECTIONS[0].progressions.map(category => (
+                    <button 
+                      key={category.id}
+                      className={`chord-type-toggle ${settings.selectedProgressions && settings.selectedProgressions.includes(category.id) ? 'active' : ''}`}
+                      onClick={() => {
+                        const newSelected = [...(settings.selectedProgressions || [])];
+                        if (newSelected.includes(category.id)) {
+                          const index = newSelected.indexOf(category.id);
+                          newSelected.splice(index, 1);
+                        } else {
+                          newSelected.push(category.id);
+                        }
+                        setSettings({...settings, selectedProgressions: newSelected});
+                      }}
+                      style={{ padding: '0.15rem 0.1rem', fontSize: '0.8rem' }}
+                    >
+                      {category.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            {/* Intermediate Progressions */}
+            <div className="chord-family-accordion" style={{ marginBottom: '0.3rem' }}>
+              <div className="chord-family-header" style={{ padding: '0.2rem 0.3rem', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}>
+                <span>Intermediate</span>
+              </div>
+              
+              <div className="chord-family-content" style={{display: 'block', marginTop: '0.2rem'}}>
+                <div className="chord-type-toggles" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.25rem' }}>
+                  {Presets.PROGRESSION_COLLECTIONS[1].progressions.map(category => (
+                    <button 
+                      key={category.id}
+                      className={`chord-type-toggle ${settings.selectedProgressions && settings.selectedProgressions.includes(category.id) ? 'active' : ''}`}
+                      onClick={() => {
+                        const newSelected = [...(settings.selectedProgressions || [])];
+                        if (newSelected.includes(category.id)) {
+                          const index = newSelected.indexOf(category.id);
+                          newSelected.splice(index, 1);
+                        } else {
+                          newSelected.push(category.id);
+                        }
+                        setSettings({...settings, selectedProgressions: newSelected});
+                      }}
+                      style={{ padding: '0.15rem 0.1rem', fontSize: '0.8rem' }}
+                    >
+                      {category.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            {/* Complex Progressions */}
+            <div className="chord-family-accordion" style={{ marginBottom: '0.3rem' }}>
+              <div className="chord-family-header" style={{ padding: '0.2rem 0.3rem', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}>
+                <span>Complex</span>
+              </div>
+              
+              <div className="chord-family-content" style={{display: 'block', marginTop: '0.2rem'}}>
+                <div className="chord-type-toggles" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.25rem' }}>
+                  {Presets.PROGRESSION_COLLECTIONS[2].progressions.map(category => (
+                    <button 
+                      key={category.id}
+                      className={`chord-type-toggle ${settings.selectedProgressions && settings.selectedProgressions.includes(category.id) ? 'active' : ''}`}
+                      onClick={() => {
+                        const newSelected = [...(settings.selectedProgressions || [])];
+                        if (newSelected.includes(category.id)) {
+                          const index = newSelected.indexOf(category.id);
+                          newSelected.splice(index, 1);
+                        } else {
+                          newSelected.push(category.id);
+                        }
+                        setSettings({...settings, selectedProgressions: newSelected});
+                      }}
+                      style={{ padding: '0.15rem 0.1rem', fontSize: '0.8rem' }}
+                    >
+                      {category.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Triads Section - Compact Layout */}
-        <div className="chord-family-accordion" style={{ marginBottom: '0.3rem' }}>
+        <div className="chord-family-accordion" style={{ marginBottom: '0.3rem', display: settings.useProgressions ? 'none' : 'block' }}>
           <div className="chord-family-header" style={{ padding: '0.2rem 0.3rem', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}>
             <span>Triads</span>
             <label className="select-all-switch" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center' }}>
@@ -434,7 +612,7 @@ function Sidebar({ settings, setSettings, midiStatus, handleSelectPreset }) {
         </div>
         
         {/* 6th Chords Category - Compact Layout */}
-        <div className="chord-family-accordion" style={{ marginBottom: '0.3rem' }}>
+        <div className="chord-family-accordion" style={{ marginBottom: '0.3rem', display: settings.useProgressions ? 'none' : 'block' }}>
           <div className="chord-family-header" style={{ padding: '0.2rem 0.3rem', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}>
             <span>6th Chords</span>
             <label className="select-all-switch" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center' }}>
@@ -499,7 +677,7 @@ function Sidebar({ settings, setSettings, midiStatus, handleSelectPreset }) {
         </div>
 
         {/* 7th Chords Section - Compact Layout */}
-        <div className="chord-family-accordion" style={{ marginBottom: '0.3rem' }}>
+        <div className="chord-family-accordion" style={{ marginBottom: '0.3rem', display: settings.useProgressions ? 'none' : 'block' }}>
           <div className="chord-family-header" style={{ padding: '0.2rem 0.3rem', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}>
             <span>7th Chords</span>
             <label className="select-all-switch" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center' }}>
@@ -644,7 +822,7 @@ function Sidebar({ settings, setSettings, midiStatus, handleSelectPreset }) {
         </div>
         
         {/* 9th Chords Section - Compact Layout */}
-        <div className="chord-family-accordion" style={{ marginBottom: '0.3rem' }}>
+        <div className="chord-family-accordion" style={{ marginBottom: '0.3rem', display: settings.useProgressions ? 'none' : 'block' }}>
           <div className="chord-family-header" style={{ padding: '0.2rem 0.3rem', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', userSelect: 'none' }}>
             <span>9th Chords</span>
             <label className="select-all-switch" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center' }}>

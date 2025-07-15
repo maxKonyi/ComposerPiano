@@ -223,6 +223,12 @@ function ChordTrainer({ activeNotes, midiStatus }) {
   const [lastWrongAttemptSignature, setLastWrongAttemptSignature] = useState(null);
   const [failedChordNotes, setFailedChordNotes] = useState(new Set()); // Store failed chord notes to display on keyboard
   const [failedChordName, setFailedChordName] = useState(null); // Store failed chord display name
+  
+  // Progression mode state
+  const [currentProgression, setCurrentProgression] = useState(null); // Current progression data
+  const [progressionIndex, setProgressionIndex] = useState(0); // Current chord index in progression
+  const [completedChords, setCompletedChords] = useState([]); // Indices of completed chords in progression
+  const [progressionKey, setProgressionKey] = useState('C'); // Key for current progression
   // Total questions will come from settings
   
   // Game state variables
@@ -252,7 +258,12 @@ function ChordTrainer({ activeNotes, midiStatus }) {
       questionDelay: 1500, // Delay between questions in milliseconds (default 1.5 seconds)
       optionalFifth: false, // 5th optional for 7th chords and larger
       activePresetId: null, // Track the currently active preset
-      difficulty: 'medium' // 'easy' (12s), 'medium' (6s), or 'hard' (3s)
+      difficulty: 'medium', // 'easy' (12s), 'medium' (6s), or 'hard' (3s)
+      // Progression mode settings
+      useProgressions: false, // Whether to use chord progressions instead of single chords
+      keyMode: 'random', // 'random' or 'fixed'
+      fixedKey: 'C', // Key to use when keyMode is 'fixed'
+      selectedProgressions: [] // Array of selected progression IDs
     };
     
     // If we have saved settings, parse and return them, otherwise use defaults
@@ -392,8 +403,8 @@ function ChordTrainer({ activeNotes, midiStatus }) {
     // Ensure settings are valid before generating a chord
     const safeSettings = {...settings};
     
-    // Make sure we have at least one chord type selected
-    if (!safeSettings.chordTypes || safeSettings.chordTypes.length === 0) {
+    // Make sure we have at least one chord type selected (only for single chord mode)
+    if (!safeSettings.useProgressions && (!safeSettings.chordTypes || safeSettings.chordTypes.length === 0)) {
       safeSettings.chordTypes = ['major', 'minor'];
       console.warn('No chord types selected, defaulting to major and minor');
     }
@@ -404,52 +415,142 @@ function ChordTrainer({ activeNotes, midiStatus }) {
     }
     
     try {
-      // Generate a new chord and add checkInversion flag based on settings
-      const newChord = MusicTheory.generateRandomChord(safeSettings);
-      
-      // Make sure we have a valid chord before setting properties
-      if (newChord) {
-        // Determine if we should check inversions based on the inversion mode
-        let checkInversion = false;
-        
-        switch(settings.inversionMode) {
-          case 'root':
-            // Root position only - don't check specific inversion, but require root position
-            checkInversion = false;
-            break;
-          case 'inversions':
-            // Specific inversions - check for the exact inversion
-            checkInversion = true;
-            // Make sure allowInversions is true when in 'inversions' mode
-            if (!settings.allowInversions) {
-              safeSettings.allowInversions = true;
+      // Check if we're in progression mode
+      if (settings.useProgressions) {
+        // If we don't have a current progression or we're at the end of the current one,
+        // generate a new progression
+        const progressionLength = currentProgression ? (Array.isArray(currentProgression) ? currentProgression.length : (currentProgression.chords ? currentProgression.chords.length : 0)) : 0;
+        if (!currentProgression || progressionIndex >= progressionLength) {
+          // Get a random progression from the selected progressions
+          if (!settings.selectedProgressions || settings.selectedProgressions.length === 0) {
+            // If no progressions are selected, default to the first simple progression category
+            const defaultProgressionId = 'triads-major-key';
+            const defaultProgression = Presets.getProgressionById(defaultProgressionId);
+            
+            if (!defaultProgression) {
+              console.error('No default progression found, falling back to single chord mode');
+              // Fall back to single chord mode
+              safeSettings.useProgressions = false;
+            } else {
+              // Determine the key for this progression
+              let key = 'C'; // Default key
+              if (settings.keyMode === 'fixed') {
+                key = settings.fixedKey || 'C';
+              } else {
+                // Random key - choose from all possible keys
+                const allKeys = MusicTheory.VALID_NOTE_NAMES;
+                key = allKeys[Math.floor(Math.random() * allKeys.length)];
+              }
+              setProgressionKey(key);
+              
+              // Generate chord progression
+              const progression = MusicTheory.generateChordProgression(defaultProgression.romanNumerals, key);
+              progression.name = defaultProgression.name;
+              progression.id = defaultProgressionId;
+              
+              // Set up progression state
+              setCurrentProgression(progression);
+              setProgressionIndex(0);
+              setCompletedChords([]);
             }
-            break;
-          case 'free':
-            // Any inversion is acceptable, but generate in root position
-            checkInversion = false;
-            // Make sure allowInversions is false to generate root position chords
-            safeSettings.allowInversions = false;
-            break;
-          default:
-            // Default to root position
-            checkInversion = false;
+          } else {
+            // Select a random progression from the selected ones
+            const randomIndex = Math.floor(Math.random() * settings.selectedProgressions.length);
+            const progressionId = settings.selectedProgressions[randomIndex];
+            const progressionData = Presets.getProgressionById(progressionId);
+            
+            if (progressionData) {
+              // Determine the key for this progression
+              let key = 'C'; // Default key
+              if (settings.keyMode === 'fixed') {
+                key = settings.fixedKey || 'C';
+              } else {
+                // Random key - choose from all possible keys
+                const allKeys = MusicTheory.VALID_NOTE_NAMES;
+                key = allKeys[Math.floor(Math.random() * allKeys.length)];
+              }
+              setProgressionKey(key);
+              
+              // Generate chord progression
+              if (!progressionData.romanNumerals || !Array.isArray(progressionData.romanNumerals) || progressionData.romanNumerals.length === 0) {
+                console.error(`Progression data for ${progressionId} has invalid or missing romanNumerals array`);
+                // Fall back to single chord mode
+                safeSettings.useProgressions = false;
+              } else {
+                try {
+                  const progression = MusicTheory.generateChordProgression(progressionData.romanNumerals, key);
+                  
+                  if (!progression || progression.length === 0) {
+                    console.error(`Failed to generate chord progression for ${progressionId}`);
+                    // Fall back to single chord mode
+                    safeSettings.useProgressions = false;
+                  } else {
+                    // Add metadata to the progression
+                    progression.name = progressionData.name || 'Unnamed Progression';
+                    progression.id = progressionId;
+                    progression.chords = progression; // Make the chords accessible as a property
+                    
+                    // Set up progression state
+                    setCurrentProgression(progression);
+                    setProgressionIndex(0);
+                    setCompletedChords([]);
+                    return; // Exit early since we've set everything up
+                  }
+                } catch (err) {
+                  console.error(`Error generating progression: ${err.message}`);
+                  // Fall back to single chord mode
+                  safeSettings.useProgressions = false;
+                }
+              }
+            } else {
+              console.error(`Progression with ID ${progressionId} not found, falling back to single chord mode`);
+              // Fall back to single chord mode
+              safeSettings.useProgressions = false;
+            }
+          }
         }
         
-        newChord.checkInversion = checkInversion;
-        newChord.inversionMode = settings.inversionMode;
-        newChord.optionalFifth = safeSettings.optionalFifth;
-        setCurrentChord(newChord);
-      } else {
-        // If chord generation failed, try again with default settings
-        console.warn('Failed to generate chord, trying with default settings');
-        const defaultChord = MusicTheory.generateChord('C', 'major', 'root', 4);
-        if (defaultChord) {
-          defaultChord.checkInversion = false;
-          defaultChord.inversionMode = settings.inversionMode || 'root';
-          defaultChord.optionalFifth = safeSettings.optionalFifth;
-          setCurrentChord(defaultChord);
+        // If we have a valid progression, get the current chord
+        const progressionLengthCheck = currentProgression ? (Array.isArray(currentProgression) ? currentProgression.length : (currentProgression.chords ? currentProgression.chords.length : 0)) : 0;
+        if (currentProgression && progressionIndex < progressionLengthCheck) {
+          const chord = currentProgression.chords[progressionIndex];
+          
+          // Determine if we should check inversions based on the inversion mode
+          let checkInversion = false;
+          
+          switch(settings.inversionMode) {
+            case 'root':
+              // Root position only - don't check specific inversion, but require root position
+              checkInversion = false;
+              break;
+            case 'inversions':
+              // Specific inversions - check for the exact inversion
+              checkInversion = true;
+              break;
+            case 'free':
+              // Any inversion is acceptable
+              checkInversion = false;
+              break;
+            default:
+              // Default to root position
+              checkInversion = false;
+          }
+          
+          chord.checkInversion = checkInversion;
+          chord.inversionMode = settings.inversionMode;
+          chord.optionalFifth = safeSettings.optionalFifth;
+          chord.progressionIndex = progressionIndex;
+          chord.progressionLength = Array.isArray(currentProgression) ? currentProgression.length : (currentProgression.chords ? currentProgression.chords.length : 0);
+          chord.progressionName = currentProgression.name;
+          
+          setCurrentChord(chord);
+        } else {
+          // If something went wrong with progression generation, fall back to single chord
+          generateRandomSingleChord(safeSettings);
         }
+      } else {
+        // Standard single chord mode
+        generateRandomSingleChord(safeSettings);
       }
     } catch (error) {
       // Handle any errors during chord generation
@@ -477,7 +578,58 @@ function ChordTrainer({ activeNotes, midiStatus }) {
       setElapsedTime(Date.now() - now);
     }, 100);
     
-  }, [settings, questionCount, score]);
+  }, [settings, questionCount, score, currentProgression, progressionIndex, completedChords]);
+  
+  // Helper function to generate a random single chord
+  const generateRandomSingleChord = (safeSettings) => {
+    // Generate a new chord and add checkInversion flag based on settings
+    const newChord = MusicTheory.generateRandomChord(safeSettings);
+    
+    // Make sure we have a valid chord before setting properties
+    if (newChord) {
+      // Determine if we should check inversions based on the inversion mode
+      let checkInversion = false;
+      
+      switch(safeSettings.inversionMode) {
+        case 'root':
+          // Root position only - don't check specific inversion, but require root position
+          checkInversion = false;
+          break;
+        case 'inversions':
+          // Specific inversions - check for the exact inversion
+          checkInversion = true;
+          // Make sure allowInversions is true when in 'inversions' mode
+          if (!safeSettings.allowInversions) {
+            safeSettings.allowInversions = true;
+          }
+          break;
+        case 'free':
+          // Any inversion is acceptable, but generate in root position
+          checkInversion = false;
+          // Make sure allowInversions is false to generate root position chords
+          safeSettings.allowInversions = false;
+          break;
+        default:
+          // Default to root position
+          checkInversion = false;
+      }
+      
+      newChord.checkInversion = checkInversion;
+      newChord.inversionMode = safeSettings.inversionMode;
+      newChord.optionalFifth = safeSettings.optionalFifth;
+      setCurrentChord(newChord);
+    } else {
+      // If chord generation failed, try again with default settings
+      console.warn('Failed to generate chord, trying with default settings');
+      const defaultChord = MusicTheory.generateChord('C', 'major', 'root', 4);
+      if (defaultChord) {
+        defaultChord.checkInversion = false;
+        defaultChord.inversionMode = safeSettings.inversionMode || 'root';
+        defaultChord.optionalFifth = safeSettings.optionalFifth;
+        setCurrentChord(defaultChord);
+      }
+    }
+  };
   
   // Start a new training session
   const startTraining = () => {
@@ -559,7 +711,7 @@ function ChordTrainer({ activeNotes, midiStatus }) {
     
     // Check if the current chord is played correctly
     // Determine how many notes are actually required (handle optional 5th)
-      const requiredNoteCount = (() => {
+    const requiredNoteCount = (() => {
         if (!currentChord) return 0;
         let count = currentChord.midiNotes.length;
         if (currentChord.optionalFifth && currentChord.midiNotes.length >= 4) {
@@ -568,7 +720,7 @@ function ChordTrainer({ activeNotes, midiStatus }) {
         }
         return count;
       })();
-      if (currentChord && isRunning && !isProcessingChord && activeNotes.size >= requiredNoteCount) {
+    if (currentChord && isRunning && !isProcessingChord && activeNotes.size >= requiredNoteCount) {
       // Set processing flag to prevent re-entry while handling this chord
       setIsProcessingChord(true);
         
@@ -647,88 +799,10 @@ function ChordTrainer({ activeNotes, midiStatus }) {
         
         // Calculate accuracy including wrong notes
         // Formula: correctAnswers / (totalAttempts + wrongNotesCount * 0.5)
-        // This counts each wrong note as half an attempt, giving a more nuanced accuracy score
         const effectiveAttempts = newTotalAttempts + wrongNotesCount * 0.5;
-        const newAccuracy = Math.round((correctAnswers / effectiveAttempts) * 100);
+        const newAccuracy = correctAnswers > 0 ? Math.round((correctAnswers / effectiveAttempts) * 100) : 0;
         setAccuracy(newAccuracy);
-        
-        // Update score and question count
-        setScore(prevScore => prevScore + pointsEarned);
-        const newQuestionCount = questionCount + 1;
-        setQuestionCount(newQuestionCount);
-        // We'll keep isRunning true but set isProcessingChord to false after the delay
-        
-        // Show feedback with multiplier information
-        setFeedback({
-          type: 'correct',
-          message: `Correct! +${pointsEarned} points (×${newMultiplier})`,
-          time: responseTime
-        });
-        
-        // Play correct answer sound
-        playSound('correct', settings);
-        
-        // Check if we've reached the question limit
-        if (newQuestionCount >= settings.questionCount) {
-          // End of session
-          if (settings.questionDelay === 0) {
-            // If instant, show completion message immediately
-            setFeedback({
-              type: 'complete',
-              message: `Training complete! Final score: ${score + pointsEarned}`
-            });
-            
-            // Play game over sound
-            playSound('gameOver', settings);
-            
-            // Show game summary
-            setTimeout(() => {
-              setShowSummary(true);
-            }, 1500);
-          } else {
-            // Otherwise wait for the configured delay
-            setTimeout(() => {
-              setFeedback({
-                type: 'complete',
-                message: `Training complete! Final score: ${score + pointsEarned}`
-              });
-              
-              // Play game over sound
-              playSound('gameOver', settings);
-              
-              // Show game summary
-              setTimeout(() => {
-                setShowSummary(true);
-              }, 1500);
-            }, settings.questionDelay);
-          }
-          return;
-        }
-        
-        // If delay is 0 (instant), move to next question immediately
-        if (settings.questionDelay === 0) {
-          generateNewQuestion();
-          return;
-        }
-        
-        // Otherwise wait for the configured delay
-        setTimeout(() => {
-          generateNewQuestion();
-        }, settings.questionDelay);
-        
-        // Reset processing flag after a short delay to prevent multiple triggers
-        setTimeout(() => {
-          setIsProcessingChord(false);
-        }, 500);
       }
-    }
-  }, [activeNotes, currentChord, isRunning, elapsedTime, generateNewQuestion]);
-  
-  // Monitor timer completion
-  useEffect(() => {
-    // In practice mode, we never timeout
-    if (isPracticeMode(settings.difficulty)) {
-      return;
     }
     
     if (isRunning && elapsedTime >= getDifficultyTime(settings.difficulty) * 1000) {
@@ -811,7 +885,7 @@ function ChordTrainer({ activeNotes, midiStatus }) {
         }, 100);
       }
     }
-  }, [isRunning, elapsedTime, settings.difficulty, lives, score, questionCount, totalAttempts]);
+  }, [isRunning, elapsedTime, settings.difficulty, lives, score, questionCount, activeNotes, currentChord, isProcessingChord, lastWrongAttemptSignature, streak, highestStreak, multiplier, wrongNotesCount, totalAttempts]);
   
   // Clean up timer on unmount
   useEffect(() => {
@@ -855,6 +929,30 @@ function ChordTrainer({ activeNotes, midiStatus }) {
         <div className="question-display">
           {currentChord ? currentChord.displayName : '---'}
         </div>
+
+        {/* Progression display - only shown when in progression mode */}
+        {settings.useProgressions && currentProgression && (
+          <div className="progression-display">
+            {/* Show progression name */}
+            <div className="progression-name">
+              {progressionKey} - {currentProgression.name}
+            </div>
+            {/* Display all chords in the progression with indicators */}
+            <div className="progression-chords">
+              {currentProgression.chords.map((chord, index) => (
+                <div 
+                  key={index} 
+                  className={`progression-chord ${index === progressionIndex ? 'current' : ''} ${completedChords.includes(index) ? 'completed' : ''}`}
+                >
+                  {chord.displayName}
+                  <div 
+                    className={`progression-indicator ${index === progressionIndex ? 'current' : ''} ${completedChords.includes(index) ? 'completed' : ''}`}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
             
             {/* Timer */}
             <Timer 
@@ -904,3 +1002,6 @@ function ChordTrainer({ activeNotes, midiStatus }) {
     </div>
   );
 }
+
+// Export the ChordTrainer component to the global window object
+window.ChordTrainer = ChordTrainer;

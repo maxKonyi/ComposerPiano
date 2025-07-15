@@ -533,6 +533,193 @@ MusicTheory.getChordVoicing = function(chord) {
 MusicTheory._recentChords = MusicTheory._recentChords || [];
 const RECENT_BUFFER_SIZE = 5; // How many previous chords to avoid repeating
 
+// Roman numeral to scale degree mapping
+MusicTheory.ROMAN_TO_DEGREE = {
+  'I': 0,
+  'II': 1,
+  'III': 2,
+  'IV': 3,
+  'V': 4,
+  'VI': 5,
+  'VII': 6,
+  'i': 0,
+  'ii': 1,
+  'iii': 2,
+  'iv': 3,
+  'v': 4,
+  'vi': 5,
+  'vii': 6
+};
+
+// Scale degree to chord quality mapping (for major key)
+MusicTheory.MAJOR_KEY_QUALITIES = {
+  0: 'major',      // I
+  1: 'minor',      // ii
+  2: 'minor',      // iii
+  3: 'major',      // IV
+  4: 'major',      // V
+  5: 'minor',      // vi
+  6: 'diminished'  // vii°
+};
+
+// Scale degree to chord quality mapping (for minor key)
+MusicTheory.MINOR_KEY_QUALITIES = {
+  0: 'minor',      // i
+  1: 'diminished', // ii°
+  2: 'major',      // III
+  3: 'minor',      // iv
+  4: 'minor',      // v
+  5: 'major',      // VI
+  6: 'major'       // VII
+};
+
+/**
+ * Parse a Roman numeral chord symbol into its components
+ * @param {string} romanStr - The Roman numeral string (e.g., "bVImaj7", "ii7", "V7")
+ * @returns {Object} An object with degree, accidental, and quality information
+ */
+MusicTheory.parseRomanNumeral = function(romanStr) {
+  if (!romanStr) return null;
+  
+  // Extract accidental if present (b or #)
+  let accidental = 0;
+  let processedStr = romanStr;
+  
+  if (romanStr.startsWith('b')) {
+    accidental = -1;
+    processedStr = romanStr.substring(1);
+  } else if (romanStr.startsWith('#')) {
+    accidental = 1;
+    processedStr = romanStr.substring(1);
+  }
+  
+  // Extract the roman numeral part (I, II, V, etc.)
+  let romanPart = '';
+  let qualityHint = '';
+  
+  // Find where the roman numeral ends and quality/extension begins
+  let i = 0;
+  while (i < processedStr.length && 
+         (processedStr[i] === 'I' || processedStr[i] === 'V' || 
+          processedStr[i] === 'i' || processedStr[i] === 'v')) {
+    romanPart += processedStr[i];
+    i++;
+  }
+  
+  // The rest is the quality hint
+  if (i < processedStr.length) {
+    qualityHint = processedStr.substring(i);
+  }
+  
+  // Determine the scale degree from the roman numeral
+  const degree = MusicTheory.ROMAN_TO_DEGREE[romanPart];
+  
+  // Determine if it's a minor chord based on case
+  const isMinor = romanPart === romanPart.toLowerCase();
+  
+  // If no explicit quality is provided, use the default based on scale position
+  if (!qualityHint) {
+    // Default quality will be determined later based on key
+  }
+  
+  return {
+    degree,
+    accidental,
+    romanPart,
+    qualityHint,
+    isMinor
+  };
+};
+
+/**
+ * Build a chord from a Roman numeral in a specific key
+ * @param {string} romanStr - The Roman numeral string
+ * @param {string} key - The key (e.g., "C", "F#")
+ * @param {string} inversionMode - The inversion mode (root, first, second, third, or free)
+ * @returns {Object} A chord object compatible with the existing system
+ */
+MusicTheory.buildChordFromRoman = function(romanStr, key, inversionMode = 'root') {
+  // Parse the Roman numeral
+  const parsed = MusicTheory.parseRomanNumeral(romanStr);
+  if (!parsed) return null;
+  
+  // Get the root note of the key
+  const keyRoot = key || 'C';
+  
+  // Calculate the root of this chord based on the scale degree
+  const keyRootIndex = MusicTheory.NOTES.indexOf(keyRoot.replace(/[b#]/, ''));
+  
+  // Major scale intervals: W-W-H-W-W-W-H (2-2-1-2-2-2-1)
+  const majorScaleIntervals = [0, 2, 4, 5, 7, 9, 11];
+  
+  // Calculate the root note of the chord
+  const degreeOffset = majorScaleIntervals[parsed.degree];
+  const rootIndex = (keyRootIndex + degreeOffset + parsed.accidental + 12) % 12;
+  const rootNote = MusicTheory.NOTES[rootIndex];
+  
+  // Determine chord quality
+  let chordType;
+  
+  if (parsed.qualityHint) {
+    // If there's an explicit quality hint, use it to determine the chord type
+    if (parsed.qualityHint.includes('maj7')) {
+      chordType = 'major7';
+    } else if (parsed.qualityHint.includes('maj9')) {
+      chordType = 'major9';
+    } else if (parsed.qualityHint.includes('m9')) {
+      chordType = 'minor9';
+    } else if (parsed.qualityHint.includes('m7')) {
+      chordType = 'minor7';
+    } else if (parsed.qualityHint === '7') {
+      chordType = 'dominant7';
+    } else if (parsed.qualityHint === '9') {
+      chordType = 'dominant9';
+    } else if (parsed.qualityHint.includes('dim')) {
+      chordType = 'diminished';
+    } else if (parsed.qualityHint.includes('aug')) {
+      chordType = 'augmented';
+    } else if (parsed.qualityHint.includes('sus2')) {
+      chordType = 'sus2';
+    } else if (parsed.qualityHint.includes('sus4') || parsed.qualityHint.includes('sus')) {
+      chordType = 'sus4';
+    } else if (parsed.qualityHint === 'm') {
+      chordType = 'minor';
+    } else if (parsed.qualityHint === '6') {
+      chordType = '6';
+    } else if (parsed.qualityHint === 'm6') {
+      chordType = 'm6';
+    } else {
+      // Default to major if we don't recognize the quality
+      chordType = 'major';
+    }
+  } else {
+    // Use the default quality based on scale degree in a major key
+    const isMinorKey = parsed.isMinor;
+    const qualities = isMinorKey ? MusicTheory.MINOR_KEY_QUALITIES : MusicTheory.MAJOR_KEY_QUALITIES;
+    chordType = qualities[parsed.degree];
+  }
+  
+  // Generate the chord
+  return MusicTheory.generateChord(rootNote, chordType, inversionMode);
+};
+
+/**
+ * Generate a chord progression in a specific key
+ * @param {string[]} romanNumerals - Array of Roman numeral strings
+ * @param {string} key - The key (e.g., "C", "F#")
+ * @param {string} inversionMode - The inversion mode
+ * @returns {Array} Array of chord objects
+ */
+MusicTheory.generateChordProgression = function(romanNumerals, key, inversionMode = 'root') {
+  if (!Array.isArray(romanNumerals) || romanNumerals.length === 0) {
+    return [];
+  }
+  
+  return romanNumerals.map(roman => 
+    MusicTheory.buildChordFromRoman(roman, key, inversionMode)
+  );
+};
+
 // Generate a random chord based on settings
 MusicTheory.generateRandomChord = function(settings) {
   // Default settings
