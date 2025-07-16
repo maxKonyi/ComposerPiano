@@ -436,12 +436,16 @@ function ChordTrainer({ activeNotes, midiStatus }) {
   // Progression helper callbacks
   // -----------------------------
   
-  // Build and load a fresh progression
+  // Create and start a new progression
   const startNewProgression = useCallback(() => {
     try {
       const prog = createNewProgression(settings);
       setCurrentProgression(prog);
       setProgressionIndex(0);
+      
+      // We don't increment the question count here because:
+      // 1. For the first progression, it's handled in startTraining
+      // 2. For subsequent progressions, it's handled in advanceChord when completing a progression
       // first chord becomes the active question
       const firstChord = prog.chords[0];
       if (firstChord) {
@@ -473,13 +477,24 @@ function ChordTrainer({ activeNotes, midiStatus }) {
 
   // Move to the next chord or start a new progression
   const advanceChord = useCallback(() => {
+    // For non-progression mode, use the standard generateNewQuestion with delay
     if (!settings.useProgressions) {
       generateNewQuestion();
       return;
     }
+    
+    // For progression mode, check if we're at the end of a progression
     if (!currentProgression || progressionIndex >= currentProgression.chords.length - 1) {
-      startNewProgression();
+      // We're at the end of a progression or need to start a new one
+      // Increment question count when completing a full progression
+      setQuestionCount(prevCount => prevCount + 1);
+      
+      // Use generateNewQuestion which will handle the delay
+      generateNewQuestion();
+      return;
     } else {
+      // We're advancing to the next chord in the same progression
+      // No delay needed between chords in the same progression
       const nextIndex = progressionIndex + 1;
       setProgressionIndex(nextIndex);
       const nextChord = currentProgression.chords[nextIndex];
@@ -492,18 +507,18 @@ function ChordTrainer({ activeNotes, midiStatus }) {
         nextChord.progressionName = currentProgression.name;
         setCurrentChord(nextChord);
       }
-    }
 
-    // restart timer for the new chord
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
+      // restart timer for the new chord (for progression mode, next chord in same progression)
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+      const now = Date.now();
+      setStartTime(now);
+      setElapsedTime(0);
+      timerRef.current = setInterval(() => {
+        setElapsedTime(Date.now() - now);
+      }, 100);
     }
-    const now = Date.now();
-    setStartTime(now);
-    setElapsedTime(0);
-    timerRef.current = setInterval(() => {
-      setElapsedTime(Date.now() - now);
-    }, 100);
   }, [settings, currentProgression, progressionIndex, generateNewQuestion, startNewProgression]);
 
   // Generate a new chord question
@@ -511,61 +526,80 @@ function ChordTrainer({ activeNotes, midiStatus }) {
     if (!settings || questionCount >= settings.questionCount) {
       return;
     }
-    // If progression mode is active, delegate to startNewProgression and exit.
-    if (settings.useProgressions) {
-      startNewProgression();
-      return;
-    }
-    // ---- single-chord mode below ----
     
-    // Make sure any previous timer is cleared
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
+    // Clear any existing question delay timeout
+    if (questionDelayTimeoutRef.current) {
+      clearTimeout(questionDelayTimeoutRef.current);
+      questionDelayTimeoutRef.current = null;
     }
     
-    // Ensure settings are valid before generating a chord
-    const safeSettings = {...settings};
+    // Show feedback that we're generating a new question
+    setFeedback({
+      type: 'info',
+      message: settings.useProgressions ? 'Next progression...' : 'Next question...'
+    });
     
-    // Make sure we have at least one chord type selected (only for single chord mode)
-    if (!safeSettings.useProgressions && (!safeSettings.chordTypes || safeSettings.chordTypes.length === 0)) {
-      safeSettings.chordTypes = ['major', 'minor'];
-      console.warn('No chord types selected, defaulting to major and minor');
-    }
-    
-    // Ensure rootNotes is an array (even if empty)
-    if (!safeSettings.rootNotes) {
-      safeSettings.rootNotes = [];
-    }
-    
-    try {
-      // Standard single chord mode
-      generateRandomSingleChord(safeSettings);
-    } catch (error) {
-      // Handle any errors during chord generation
-      console.error('Error generating chord:', error);
-      const defaultChord = MusicTheory.generateChord('C', 'major', 'root', 4);
-      if (defaultChord) {
-        defaultChord.checkInversion = false;
-        defaultChord.inversionMode = settings.inversionMode || 'root';
-        defaultChord.optionalFifth = safeSettings.optionalFifth;
-        setCurrentChord(defaultChord);
+    // Apply the question delay before generating the new question
+    // Use the question delay from settings, default to 1500ms if not set
+    const delayTime = settings.questionDelay !== undefined ? settings.questionDelay : 1500;
+    questionDelayTimeoutRef.current = setTimeout(() => {
+      // If progression mode is active, delegate to startNewProgression and exit.
+      if (settings.useProgressions) {
+        startNewProgression();
+        return;
       }
-    }
-    
-    // Update game state
-    setIsRunning(true);
-    setIsProcessingChord(false); // Reset processing flag when generating a new question
-    const now = Date.now();
-    setStartTime(now);
-    setElapsedTime(0); // Explicitly reset elapsed time to 0 for immediate timer bar reset
-    setFeedback(null);
-    setLastWrongAttemptSignature(null);
-    
-    // Start a new timer
-    timerRef.current = setInterval(() => {
-      setElapsedTime(Date.now() - now);
-    }, 100);
+      
+      // ---- single-chord mode below ----
+      
+      // Make sure any previous timer is cleared
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      
+      // Ensure settings are valid before generating a chord
+      const safeSettings = {...settings};
+      
+      // Make sure we have at least one chord type selected (only for single chord mode)
+      if (!safeSettings.useProgressions && (!safeSettings.chordTypes || safeSettings.chordTypes.length === 0)) {
+        safeSettings.chordTypes = ['major', 'minor'];
+        console.warn('No chord types selected, defaulting to major and minor');
+      }
+      
+      // Ensure rootNotes is an array (even if empty)
+      if (!safeSettings.rootNotes) {
+        safeSettings.rootNotes = [];
+      }
+      
+      try {
+        // Standard single chord mode
+        generateRandomSingleChord(safeSettings);
+      } catch (error) {
+        // Handle any errors during chord generation
+        console.error('Error generating chord:', error);
+        const defaultChord = MusicTheory.generateChord('C', 'major', 'root', 4);
+        if (defaultChord) {
+          defaultChord.checkInversion = false;
+          defaultChord.inversionMode = settings.inversionMode || 'root';
+          defaultChord.optionalFifth = safeSettings.optionalFifth;
+          setCurrentChord(defaultChord);
+        }
+      }
+      
+      // Update game state
+      setIsRunning(true);
+      setIsProcessingChord(false); // Reset processing flag when generating a new question
+      const now = Date.now();
+      setStartTime(now);
+      setElapsedTime(0); // Explicitly reset elapsed time to 0 for immediate timer bar reset
+      setFeedback(null);
+      setLastWrongAttemptSignature(null);
+      
+      // Start a new timer
+      timerRef.current = setInterval(() => {
+        setElapsedTime(Date.now() - now);
+      }, 100);
+    }, delayTime); // Use the question delay from settings
     
   }, [settings, questionCount, score, currentProgression, progressionIndex, completedChords]);
   
@@ -806,8 +840,11 @@ function ChordTrainer({ activeNotes, midiStatus }) {
           message: `Correct! +${pointsEarned} points`
         });
         
-        // Increment question count
-        setQuestionCount(prevCount => prevCount + 1);
+        // Only increment question count in single-chord mode
+        // In progression mode, we count the entire progression as one question
+        if (!settings.useProgressions) {
+          setQuestionCount(prevCount => prevCount + 1);
+        }
         
         // Handle next step
         advanceChord();
