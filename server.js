@@ -3,7 +3,8 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const PORT = 8080;
+const PORT = Number(process.env.PORT || process.argv[2]) || 8080;
+const WEB_ROOT = path.join(__dirname, 'docs');
 
 const MIME_TYPES = {
   '.html': 'text/html',
@@ -13,13 +14,22 @@ const MIME_TYPES = {
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.wav': 'audio/wav',
 };
 
 const server = http.createServer((req, res) => {
   console.log(`Request: ${req.url}`);
   
-  // Default to index.html for root path
-  let filePath = req.url === '/' ? './index.html' : '.' + req.url;
+  const requestPath = decodeURIComponent(req.url.split('?')[0]);
+  const relativePath = requestPath === '/' ? 'index.html' : requestPath.replace(/^\/+/, '');
+  const filePath = path.normalize(path.join(WEB_ROOT, relativePath));
+
+  if (filePath !== WEB_ROOT && !filePath.startsWith(WEB_ROOT + path.sep)) {
+    res.writeHead(403);
+    res.end('Forbidden');
+    return;
+  }
   
   const extname = path.extname(filePath);
   let contentType = MIME_TYPES[extname] || 'application/octet-stream';
@@ -28,7 +38,7 @@ const server = http.createServer((req, res) => {
     if (err) {
       if (err.code === 'ENOENT') {
         // File not found
-        fs.readFile('./index.html', (err, content) => {
+        fs.readFile(path.join(WEB_ROOT, 'index.html'), (err, content) => {
           res.writeHead(200, { 'Content-Type': 'text/html' });
           res.end(content, 'utf-8');
         });
