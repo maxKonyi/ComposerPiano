@@ -49,7 +49,7 @@ class GameLogger {
     }
 }
 
-// Create and export singleton instance
+// Create singleton instance
 const logger = new GameLogger();
 window.logger = logger; // Make globally available
 
@@ -58,5 +58,3 @@ logger.event('Logger initialized', {
     debugMode: logger.enabled,
     timestamp: new Date().toISOString()
 });
-
-export default logger;
