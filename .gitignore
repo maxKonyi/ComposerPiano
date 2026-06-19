@@ -12,6 +12,9 @@ node_modules/
 /build
 /dist
 
+# Local backups
+backup_*/
+
 # Debug logs
 npm-debug.log*
 yarn-debug.log*
