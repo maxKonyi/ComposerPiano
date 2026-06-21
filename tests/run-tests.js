@@ -61,6 +61,9 @@ test('MIDI helpers format notes and expand keyboard octave range', () => {
   assert.strictEqual(MidiUtils.getMidiNoteName(61), 'C#4');
   assert.strictEqual(MidiUtils.getMidiNoteName(21), 'A0');
   assert.strictEqual(MidiUtils.getMidiNoteName(null), '');
+  assert.strictEqual(MidiUtils.formatMidiBytes([0x90, 60, 100]), '90 3c 64');
+  assert.strictEqual(MidiUtils.formatMidiBytes(new Uint8Array([0x80, 60, 0])), '80 3c 00');
+  assert.strictEqual(MidiUtils.formatMidiBytes(null), '');
 
   assert.deepStrictEqual(MidiUtils.getKeyboardOctaveRange(new Set(), new Set(), 3, 5), {
     startOctave: 3,
@@ -83,9 +86,15 @@ test('app MIDI wiring refreshes devices and listener setup when inputs change', 
   assert.ok(source.includes('access.onstatechange'), 'expected Web MIDI statechange handling');
   assert.ok(source.includes('const refreshedInputs = refreshMidiInputs(access)'), 'expected state changes to capture a refreshed input snapshot');
   assert.ok(source.includes('setMidiInputs(refreshedInputs)'), 'expected device snapshot refresh on state changes');
-  assert.ok(source.includes('input.onmidimessage = handleMIDIMessage'), 'expected MIDI message listener attachment');
+  assert.ok(source.includes('attachMidiInputListener(input'), 'expected shared MIDI listener attachment helper');
+  assert.ok(source.includes('input.onmidimessage = listener'), 'expected onmidimessage compatibility fallback');
+  assert.ok(source.includes('input.open()'), 'expected MIDI input ports to be explicitly opened');
+  assert.ok(source.includes("input.addEventListener('midimessage'"), 'expected EventTarget MIDI listener attachment');
+  assert.ok(source.includes("input.removeEventListener('midimessage'"), 'expected EventTarget MIDI listener cleanup');
   assert.ok(source.includes('[selectedInput, midiAccess, midiInputs]'), 'expected listener setup to rerun when inputs refresh');
   assert.ok(source.includes('lastMidiMessage'), 'expected last MIDI message diagnostics state');
+  assert.ok(source.includes('lastRawMidiMessage'), 'expected raw MIDI message diagnostics state');
+  assert.ok(source.includes('midiMessageCount'), 'expected raw MIDI message count diagnostics state');
   assert.ok(source.includes('activeNoteCount'), 'expected active note count to be passed through diagnostics');
 });
 
@@ -98,6 +107,8 @@ test('sidebar displays MIDI diagnostics for troubleshooting hardware input', () 
   assert.ok(source.includes('midiStatus.activeNoteCount'), 'expected active note count diagnostic');
   assert.ok(source.includes('midiStatus.lastNoteName'), 'expected last note diagnostic');
   assert.ok(source.includes('midiStatus.lastMessageType'), 'expected last message type diagnostic');
+  assert.ok(source.includes('midiStatus.messageCount'), 'expected raw MIDI message count diagnostic');
+  assert.ok(source.includes('midiStatus.lastRawMessage'), 'expected raw MIDI bytes diagnostic');
   assert.ok(sidebarCss.includes('.midi-diagnostics'), 'expected diagnostics styling');
 });
 

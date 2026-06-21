@@ -237,6 +237,9 @@ function Sidebar({ settings, setSettings, midiStatus, handleSelectPreset }) {
   const midiLastNoteLabel = midiStatus && midiStatus.lastNoteName
     ? `${midiStatus.lastNoteName} ${midiStatus.lastMessageType === 'noteon' ? 'on' : 'off'}`
     : 'None yet';
+  const midiLastRawLabel = midiStatus && midiStatus.lastRawMessage
+    ? midiStatus.lastRawMessage
+    : 'None yet';
 
   const setDifficulty = difficulty => {
     const nextSettings = { ...settings, difficulty };
@@ -309,11 +312,22 @@ function Sidebar({ settings, setSettings, midiStatus, handleSelectPreset }) {
               <strong>{midiStatus.activeNoteCount}</strong>
             </div>
             <div className="midi-diagnostic-row">
+              <span>Messages</span>
+              <strong>{midiStatus.messageCount}</strong>
+            </div>
+            <div className="midi-diagnostic-row">
               <span>Last Note</span>
               <strong>{midiLastNoteLabel}</strong>
             </div>
+            <div className="midi-diagnostic-row">
+              <span>Last Raw</span>
+              <strong>{midiLastRawLabel}</strong>
+            </div>
             {midiStatus.midiError && (
               <p className="midi-diagnostic-error">{midiStatus.midiError}</p>
+            )}
+            {midiStatus.listenerError && (
+              <p className="midi-diagnostic-error">{midiStatus.listenerError}</p>
             )}
           </div>
         </section>

@@ -39,6 +39,32 @@ function getSelectedInputName(midiInputs, selectedInput) {
   return input ? (input.name || input.manufacturer || 'Unknown Device') : 'Unavailable input';
 }
 
+function attachMidiInputListener(input, handleMIDIMessage, handleOpenError) {
+  const listener = message => handleMIDIMessage(message, input);
+
+  if (typeof input.open === 'function') {
+    input.open().catch(error => {
+      handleOpenError(input, error);
+    });
+  }
+
+  if (typeof input.addEventListener === 'function') {
+    input.addEventListener('midimessage', listener);
+
+    return () => {
+      input.removeEventListener('midimessage', listener);
+    };
+  }
+
+  input.onmidimessage = listener;
+
+  return () => {
+    if (input.onmidimessage === listener) {
+      input.onmidimessage = null;
+    }
+  };
+}
+
 function App() {
   const [page, setPage] = useState('chord'); // 'chord' | 'scale'
   const [midiAccess, setMidiAccess] = useState(null);
@@ -47,6 +73,9 @@ function App() {
   const [activeNotes, setActiveNotes] = useState(new Set());
   const [midiInputs, setMidiInputs] = useState([]);
   const [lastMidiMessage, setLastMidiMessage] = useState(null);
+  const [lastRawMidiMessage, setLastRawMidiMessage] = useState('');
+  const [midiMessageCount, setMidiMessageCount] = useState(0);
+  const [midiListenerError, setMidiListenerError] = useState(null);
   const [selectedInput, setSelectedInput] = useState(() => {
     // Try to get the saved MIDI input from localStorage
     return localStorage.getItem('selectedMidiInput');
@@ -95,13 +124,24 @@ function App() {
   
   // Set up MIDI input listeners when selected input changes
   useEffect(() => {
-    const handleMIDIMessage = (message) => {
+    const handleOpenError = (input, error) => {
+      const inputName = input.name || input.manufacturer || 'Unknown Device';
+      setMidiListenerError(`Could not open ${inputName}: ${error.message}`);
+    };
+
+    const handleMIDIMessage = (message, input) => {
+      const rawMessage = MidiUtils.formatMidiBytes(message.data);
+      setLastRawMidiMessage(rawMessage);
+      setMidiMessageCount(count => count + 1);
+
       const noteMessage = MidiUtils.parseNoteMessage(message.data);
       
       if (!noteMessage) return;
 
       setLastMidiMessage({
         ...noteMessage,
+        inputId: input ? input.id : '',
+        inputName: input ? (input.name || input.manufacturer || 'Unknown Device') : '',
         noteName: MidiUtils.getMidiNoteName(noteMessage.note),
         receivedAt: Date.now()
       });
@@ -125,18 +165,15 @@ function App() {
     // If selectedInput is null, listen to all inputs
     if (selectedInput === null && midiAccess) {
       // Set up listeners for all inputs
-      const inputListeners = new Map();
+      const removeInputListeners = [];
       
       midiInputs.forEach(input => {
-        input.onmidimessage = handleMIDIMessage;
-        inputListeners.set(input.id, input);
+        removeInputListeners.push(attachMidiInputListener(input, handleMIDIMessage, handleOpenError));
       });
       
       // Clean up function to remove all listeners
       return () => {
-        inputListeners.forEach(input => {
-          input.onmidimessage = null;
-        });
+        removeInputListeners.forEach(removeInputListener => removeInputListener());
       };
     } 
     // Otherwise listen to just the selected input
@@ -146,10 +183,10 @@ function App() {
       
       // If we found the input, set up the listener
       if (inputObj) {
-        inputObj.onmidimessage = handleMIDIMessage;
+        const removeInputListener = attachMidiInputListener(inputObj, handleMIDIMessage, handleOpenError);
         
         return () => {
-          inputObj.onmidimessage = null;
+          removeInputListener();
         };
       }
     }
@@ -188,6 +225,9 @@ function App() {
             accessState: midiAccessState,
             activeNoteCount: activeNotes.size,
             lastMidiMessage,
+            lastRawMessage: lastRawMidiMessage,
+            messageCount: midiMessageCount,
+            listenerError: midiListenerError,
             lastNoteName: lastMidiMessage ? lastMidiMessage.noteName : '',
             lastMessageType: lastMidiMessage ? lastMidiMessage.type : '',
             handleInputChange: handleMidiInputChange

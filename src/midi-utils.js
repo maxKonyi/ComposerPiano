@@ -45,6 +45,14 @@ MidiUtils.getMidiNoteName = function(note) {
   return `${noteName}${octave}`;
 };
 
+MidiUtils.formatMidiBytes = function(data) {
+  if (!data) return '';
+
+  return Array.from(data)
+    .map(value => Number(value).toString(16).padStart(2, '0'))
+    .join(' ');
+};
+
 MidiUtils.getKeyboardOctaveRange = function(activeNotes, failedNotes, defaultStartOctave = 3, defaultEndOctave = 5) {
   const notes = [
     ...Array.from(activeNotes || []),
