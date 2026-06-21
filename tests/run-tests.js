@@ -292,6 +292,111 @@ test('chord trainer applies generated progression key to display state', () => {
   assert.ok(source.includes('nextChord(progressionIndex)'), 'expected progression display completion to use current index');
 });
 
+test('trainer presentational sections are decomposed into focused components', () => {
+  const trainerSource = fs.readFileSync(path.join(root, 'src/ChordTrainer.jsx'), 'utf8');
+  const componentDir = path.join(root, 'src', 'components', 'trainer');
+  const expectedComponents = [
+    'GameSummary',
+    'LivesDisplay',
+    'ProgressionDisplay',
+    'QuestionDisplay',
+    'SessionControls',
+    'TimerBar'
+  ];
+
+  assert.ok(fs.existsSync(componentDir), 'expected trainer component directory');
+  for (const componentName of expectedComponents) {
+    const componentPath = path.join(componentDir, `${componentName}.jsx`);
+    assert.ok(fs.existsSync(componentPath), `expected ${componentName}.jsx`);
+    assert.ok(
+      trainerSource.includes(`./components/trainer/${componentName}.jsx`),
+      `expected ChordTrainer to import ${componentName}`
+    );
+  }
+  assert.ok(!trainerSource.includes('function LivesDisplay'), 'LivesDisplay should not remain inline');
+  assert.ok(!trainerSource.includes('function GameSummary'), 'GameSummary should not remain inline');
+});
+
+test('trainer extracted displays preserve key markup and class contracts', () => {
+  const componentDir = path.join(root, 'src', 'components', 'trainer');
+  const livesSource = fs.readFileSync(path.join(componentDir, 'LivesDisplay.jsx'), 'utf8');
+  const questionSource = fs.readFileSync(path.join(componentDir, 'QuestionDisplay.jsx'), 'utf8');
+  const progressionSource = fs.readFileSync(path.join(componentDir, 'ProgressionDisplay.jsx'), 'utf8');
+
+  assert.ok(livesSource.includes('Array(3)'), 'expected exactly three life slots');
+  assert.ok(livesSource.includes('lives-display'), 'expected lives wrapper class');
+  assert.ok(livesSource.includes('life-icon'), 'expected life icon class');
+  assert.ok(livesSource.includes('life-active'), 'expected active life class');
+  assert.ok(livesSource.includes('life-lost'), 'expected lost life class');
+  assert.ok(livesSource.includes('i < lives'), 'expected life classes to depend on remaining lives');
+
+  assert.ok(questionSource.includes('question-display'), 'expected question display class');
+  assert.ok(questionSource.includes('currentChord.displayName'), 'expected chord display name');
+  assert.ok(questionSource.includes("'---'"), 'expected idle question placeholder');
+
+  assert.ok(progressionSource.includes('progression-display'), 'expected progression wrapper class');
+  assert.ok(progressionSource.includes('progression-name'), 'expected progression name class');
+  assert.ok(progressionSource.includes('progression-chords'), 'expected progression chord list class');
+  assert.ok(progressionSource.includes('progression-chord'), 'expected progression chord class');
+  assert.ok(progressionSource.includes('progression-indicator'), 'expected progression indicator class');
+  assert.ok(progressionSource.includes('index === progressionIndex'), 'expected current chord index class convention');
+  assert.ok(progressionSource.includes('completedChords.includes(index)'), 'expected completed display index convention');
+  assert.ok(progressionSource.includes('currentProgression.chords.map'), 'expected all progression chords to render');
+  assert.ok(progressionSource.includes('{chord.displayName}'), 'expected progression chord display names');
+});
+
+test('trainer extracted controls preserve callbacks and practice-only skip behavior', () => {
+  const source = fs.readFileSync(path.join(root, 'src', 'components', 'trainer', 'SessionControls.jsx'), 'utf8');
+
+  assert.ok(source.includes('GameLogic.isPracticeMode(difficulty)'), 'expected skip to be gated by practice mode');
+  assert.ok(source.includes('onClick={onStart}'), 'expected start callback binding');
+  assert.ok(source.includes('onClick={onSkip}'), 'expected skip callback binding');
+  assert.ok(source.includes('onClick={onEnd}'), 'expected end callback binding');
+  assert.ok(source.includes('Start Training'), 'expected start button text');
+  assert.ok(source.includes('Skip'), 'expected skip button text');
+  assert.ok(source.includes('End Game'), 'expected end button text');
+  assert.ok(source.includes('skip-button'), 'expected skip button class');
+  assert.ok(source.includes('end-button'), 'expected end button class');
+  assert.ok(source.includes('!isRunning'), 'expected start/end control split by running state');
+});
+
+test('trainer extracted summary preserves practice gates and summary classes', () => {
+  const source = fs.readFileSync(path.join(root, 'src', 'components', 'trainer', 'GameSummary.jsx'), 'utf8');
+
+  assert.ok(source.includes('GameLogic.isPracticeMode'), 'expected practice mode detection');
+  assert.ok(source.includes('game-summary'), 'expected summary wrapper class');
+  assert.ok(source.includes('failed-chord-display'), 'expected failed chord display class');
+  assert.ok(source.includes('failed-chord-value'), 'expected failed chord value class');
+  assert.ok(source.includes('failed-chord-label'), 'expected failed chord label class');
+  assert.ok(source.includes('summary-row'), 'expected summary row class');
+  assert.ok(source.includes('summary-item'), 'expected summary item class');
+  assert.ok(source.includes('summary-value'), 'expected summary value class');
+  assert.ok(source.includes('summary-label'), 'expected summary label class');
+  assert.ok(source.includes('summary-divider'), 'expected summary divider class');
+  assert.ok(source.includes('gem-row'), 'expected gem row class');
+  assert.ok(source.includes('gem-container'), 'expected gem container class');
+  assert.ok(source.includes("className={`gem ${i < gemCount ? 'filled' : ''}`}"), 'expected filled gem class behavior');
+  assert.ok(source.includes('restart-button'), 'expected restart button class');
+  assert.ok(source.includes('onClick={onRestart}'), 'expected restart callback binding');
+  assert.ok(source.includes('!isPractice && failedChordName'), 'expected failed chord hidden in practice mode');
+  assert.ok(source.includes('!isPractice && ('), 'expected non-practice-only score/streak/gem sections');
+  assert.ok(source.includes('isPractice ? questionCount : settings.questionCount'), 'expected practice summary question count behavior');
+  assert.ok(source.includes('Final Score'), 'expected final score label');
+  assert.ok(source.includes('Highest Streak'), 'expected highest streak label');
+  assert.ok(source.includes('Play Again'), 'expected restart button text');
+});
+
+test('trainer extracted timer bar delegates to existing Timer with passthrough props', () => {
+  const source = fs.readFileSync(path.join(root, 'src', 'components', 'trainer', 'TimerBar.jsx'), 'utf8');
+
+  assert.ok(source.includes("import { Timer } from '../../App.jsx'"), 'expected existing Timer import');
+  assert.ok(source.includes('<Timer'), 'expected Timer render');
+  assert.ok(source.includes('isRunning={isRunning}'), 'expected isRunning passthrough');
+  assert.ok(source.includes('elapsedTime={elapsedTime}'), 'expected elapsedTime passthrough');
+  assert.ok(source.includes('maxSeconds={maxSeconds}'), 'expected maxSeconds passthrough');
+  assert.ok(source.includes('difficulty={difficulty}'), 'expected difficulty passthrough');
+});
+
 test('single chord helper prepares inversion and fallback metadata', () => {
   const generated = GameLogic.prepareSingleChord({ midiNotes: [60, 64, 67] }, {
     inversionMode: 'inversions',
